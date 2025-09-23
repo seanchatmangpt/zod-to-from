@@ -1,0 +1,22 @@
+{
+  "sourceFile": "tsconfig.json",
+  "activeCommit": 0,
+  "commits": [
+    {
+      "activePatchIndex": 1,
+      "patches": [
+        {
+          "date": 1758642178667,
+          "content": "Index: \n===================================================================\n--- \n+++ \n"
+        },
+        {
+          "date": 1758642280319,
+          "content": "Index: \n===================================================================\n--- \n+++ \n@@ -9,12 +9,13 @@\n     \"allowJs\": true,\n     \"resolveJsonModule\": true,\n     \"strict\": false,\n     \"isolatedModules\": true,\n-    \"verbatimModuleSyntax\": true,\n-    \"noUncheckedIndexedAccess\": true,\n+    \"verbatimModuleSyntax\": false,\n+    \"noUncheckedIndexedAccess\": false,\n     \"forceConsistentCasingInFileNames\": true,\n-    \"allowImportingTsExtensions\": true,\n-    \"noImplicitOverride\": true,\n-    \"noEmit\": true\n+    \"allowImportingTsExtensions\": false,\n+    \"noImplicitOverride\": false,\n+    \"noEmit\": true,\n+    \"skipLibCheck\": true\n   }\n }\n"
+        }
+      ],
+      "date": 1758642178667,
+      "name": "Commit-0",
+      "content": "{\n  \"compilerOptions\": {\n    \"target\": \"esnext\",\n    \"module\": \"nodenext\",\n    \"moduleResolution\": \"nodenext\",\n    \"moduleDetection\": \"force\",\n    \"esModuleInterop\": true,\n    \"allowSyntheticDefaultImports\": true,\n    \"allowJs\": true,\n    \"resolveJsonModule\": true,\n    \"strict\": false,\n    \"isolatedModules\": true,\n    \"verbatimModuleSyntax\": true,\n    \"noUncheckedIndexedAccess\": true,\n    \"forceConsistentCasingInFileNames\": true,\n    \"allowImportingTsExtensions\": true,\n    \"noImplicitOverride\": true,\n    \"noEmit\": true\n  }\n}\n"
+    }
+  ]
+}

@@ -1,0 +1,18 @@
+{
+    "sourceFile": "src/cli/commands/schema.mjs",
+    "activeCommit": 0,
+    "commits": [
+        {
+            "activePatchIndex": 0,
+            "patches": [
+                {
+                    "date": 1758644495339,
+                    "content": "Index: \n===================================================================\n--- \n+++ \n"
+                }
+            ],
+            "date": 1758644495339,
+            "name": "Commit-0",
+            "content": "/**\n * Schema command implementations\n * @fileoverview Commands for managing and migrating schemas\n */\n\nimport { readFile, writeFile } from 'node:fs/promises';\nimport { resolve } from 'node:path';\n\n/**\n * Load a schema from a file path\n * @param {string} schemaPath - Path to schema file\n * @returns {Promise<Object>} The loaded schema\n */\nasync function loadSchema(schemaPath) {\n  if (!schemaPath) {\n    throw new Error('Schema path is required');\n  }\n\n  const [filePath, exportName] = schemaPath.split('#');\n  const resolvedPath = resolve(process.cwd(), filePath);\n\n  try {\n    const module = await import(resolvedPath);\n    const schema = exportName ? module[exportName] : module.default;\n\n    if (!schema) {\n      throw new Error(`Schema export '${exportName || 'default'}' not found in ${filePath}`);\n    }\n\n    return schema;\n  } catch (error) {\n    throw new Error(`Failed to load schema from ${schemaPath}: ${error.message}`);\n  }\n}\n\n/**\n * Migrate command - Migrate data from one schema version to another\n * @param {Object} options - Command options\n */\nexport async function migrate(options) {\n  const {\n    from: fromSchemaPath,\n    to: toSchemaPath,\n    in: inputPath,\n    out: outputPath,\n    provenance,\n  } = options;\n\n  try {\n    // Load schemas\n    const fromSchema = await loadSchema(fromSchemaPath);\n    const toSchema = await loadSchema(toSchemaPath);\n\n    // Read input data\n    const input = await readFile(inputPath, 'utf8');\n    const data = JSON.parse(input);\n\n    // Validate against source schema\n    const validatedData = fromSchema.parse(data);\n\n    // Transform to target schema\n    // Note: This is a placeholder - actual migration would depend on the specific schemas\n    const migratedData = toSchema.parse(validatedData);\n\n    // Write output\n    const output = JSON.stringify(migratedData, undefined, 2);\n    await writeFile(outputPath, output, 'utf8');\n\n    console.log(`✅ Successfully migrated ${inputPath} from ${fromSchemaPath} to ${toSchemaPath}`);\n    if (provenance) {\n      console.log(`📋 Migration completed at: ${new Date().toISOString()}`);\n    }\n  } catch (error) {\n    console.error(`❌ Migrate failed: ${error.message}`);\n    throw error;\n  }\n}\n\n/**\n * Validate command - Validate data against a schema\n * @param {Object} options - Command options\n */\nexport async function validate(options) {\n  const { schema: schemaPath, in: inputPath, repair } = options;\n\n  try {\n    // Load schema\n    const schema = await loadSchema(schemaPath);\n\n    // Read input data\n    const input = await readFile(inputPath, 'utf8');\n    const data = JSON.parse(input);\n\n    // Validate data\n    const validatedData = schema.parse(data);\n\n    console.log(`✅ Data in ${inputPath} is valid against schema ${schemaPath}`);\n    if (repair) {\n      console.log(`🔧 Auto-repair enabled (if needed)`);\n    }\n  } catch (error) {\n    console.error(`❌ Validation failed: ${error.message}`);\n    if (repair) {\n      console.log(`🔧 Attempting auto-repair...`);\n      // Placeholder for auto-repair logic\n    }\n    throw error;\n  }\n}\n"
+        }
+    ]
+}

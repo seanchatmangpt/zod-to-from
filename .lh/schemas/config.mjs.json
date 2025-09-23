@@ -1,0 +1,18 @@
+{
+  "sourceFile": "schemas/config.mjs",
+  "activeCommit": 0,
+  "commits": [
+    {
+      "activePatchIndex": 0,
+      "patches": [
+        {
+          "date": 1758643834032,
+          "content": "Index: \n===================================================================\n--- \n+++ \n"
+        }
+      ],
+      "date": 1758643834032,
+      "name": "Commit-0",
+      "content": "/**\n * Sample configuration schema for ZTF CLI testing\n */\n\nimport { z } from 'zod';\n\n/**\n * Configuration schema for application settings\n */\nexport const Config = z.object({\n  host: z.string().min(1, 'Host is required'),\n  port: z.number().int().positive('Port must be a positive integer'),\n  debug: z.boolean().default(false),\n  database: z.object({\n    url: z.string().url('Database URL must be valid'),\n    pool: z.number().int().positive().default(10),\n  }),\n  features: z.array(z.string()).default([]),\n});\n\n/**\n * Report schema for data analytics\n */\nexport const Report = z.object({\n  title: z.string(),\n  date: z.string().datetime(),\n  metrics: z.record(z.number()),\n  summary: z.string().optional(),\n});\n\n/**\n * User schema for user management\n */\nexport const User = z.object({\n  id: z.string().uuid(),\n  name: z.string().min(1),\n  email: z.string().email(),\n  role: z.enum(['admin', 'user', 'guest']).default('user'),\n  createdAt: z.string().datetime(),\n});\n\n/**\n * CSV data schema for testing\n */\nexport const CsvData = z.array(\n  z.object({\n    name: z.string(),\n    age: z.coerce.number(),\n    active: z.coerce.boolean(),\n  })\n);\n"
+    }
+  ]
+}

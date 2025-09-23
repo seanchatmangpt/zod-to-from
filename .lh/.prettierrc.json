@@ -1,0 +1,18 @@
+{
+  "sourceFile": ".prettierrc",
+  "activeCommit": 0,
+  "commits": [
+    {
+      "activePatchIndex": 0,
+      "patches": [
+        {
+          "date": 1758642644757,
+          "content": "Index: \n===================================================================\n--- \n+++ \n"
+        }
+      ],
+      "date": 1758642644757,
+      "name": "Commit-0",
+      "content": "{\n  \"semi\": true,\n  \"trailingComma\": \"es5\",\n  \"singleQuote\": true,\n  \"printWidth\": 100,\n  \"tabWidth\": 2,\n  \"useTabs\": false,\n  \"bracketSpacing\": true,\n  \"bracketSameLine\": false,\n  \"arrowParens\": \"avoid\",\n  \"endOfLine\": \"lf\",\n  \"quoteProps\": \"as-needed\",\n  \"jsxSingleQuote\": true,\n  \"proseWrap\": \"preserve\",\n  \"htmlWhitespaceSensitivity\": \"css\",\n  \"embeddedLanguageFormatting\": \"auto\",\n  \"overrides\": [\n    {\n      \"files\": \"*.md\",\n      \"options\": {\n        \"proseWrap\": \"always\",\n        \"printWidth\": 80\n      }\n    },\n    {\n      \"files\": \"*.json\",\n      \"options\": {\n        \"printWidth\": 80\n      }\n    },\n    {\n      \"files\": \"*.yml\",\n      \"options\": {\n        \"tabWidth\": 2\n      }\n    }\n  ]\n}\n"
+    }
+  ]
+}

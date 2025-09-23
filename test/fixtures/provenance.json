@@ -1,0 +1,9 @@
+{
+  "timestamp": "2024-01-15T10:30:00.000Z",
+  "adapter": "json",
+  "sourceFormat": "json",
+  "targetFormat": "yaml",
+  "version": "1.0.0",
+  "schemaHash": "abc123def456",
+  "aiModel": null
+}

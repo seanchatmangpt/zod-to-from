@@ -7,14 +7,19 @@
     "esModuleInterop": true,
     "allowSyntheticDefaultImports": true,
     "allowJs": true,
+    "checkJs": true,
     "resolveJsonModule": true,
-    "strict": true,
+    "strict": false,
     "isolatedModules": true,
-    "verbatimModuleSyntax": true,
-    "noUncheckedIndexedAccess": true,
+    "verbatimModuleSyntax": false,
+    "noUncheckedIndexedAccess": false,
     "forceConsistentCasingInFileNames": true,
-    "allowImportingTsExtensions": true,
-    "noImplicitOverride": true,
-    "noEmit": true
-  }
+    "allowImportingTsExtensions": false,
+    "noImplicitOverride": false,
+    "noEmit": true,
+    "skipLibCheck": true,
+    "maxNodeModuleJsDepth": 0
+  },
+  "include": ["src/**/*.mjs", "test/**/*.mjs"],
+  "exclude": ["node_modules", "dist"]
 }

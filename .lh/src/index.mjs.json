@@ -1,0 +1,18 @@
+{
+  "sourceFile": "src/index.mjs",
+  "activeCommit": 0,
+  "commits": [
+    {
+      "activePatchIndex": 0,
+      "patches": [
+        {
+          "date": 1758643834024,
+          "content": "Index: \n===================================================================\n--- \n+++ \n"
+        }
+      ],
+      "date": 1758643834024,
+      "name": "Commit-0",
+      "content": "/**\n * Main entry point for zod-to-from library\n * Re-exports all core functionality and adapters\n */\n\n// Import and register data adapters first\nimport './adapters/data.mjs';\n\n// Export core functionality\nexport * from './core/index.mjs';\n"
+    }
+  ]
+}

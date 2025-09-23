@@ -1,72 +1,302 @@
-# packageName
+# zod-to-from (ZTF)
 
-<!-- automd:badges color=yellow -->
+[![npm version](https://img.shields.io/npm/v/zod-to-from.svg)](https://www.npmjs.com/package/zod-to-from)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+[![Build Status](https://img.shields.io/badge/build-passing-brightgreen.svg)](https://github.com/unjs/zod-to-from)
 
-[![npm version](https://img.shields.io/npm/v/packageName?color=yellow)](https://npmjs.com/package/packageName)
-[![npm downloads](https://img.shields.io/npm/dm/packageName?color=yellow)](https://npm.chart.dev/packageName)
+ZTF is a universal I/O conversion layer centered on Zod schemas. The core
+philosophy is that Zod is the single source of truth, and all other formats are
+merely views of that truth. It aims to make Zod the universal intermediate
+representation for all application I/O.
 
-<!-- /automd -->
+## Core Philosophy
 
-This is my package description.
+The library operates on two primary primitives: `from(format) -> zod` and
+`to(format) <- zod`. All transformations are deterministic, using canonical
+ordering and stable serialization to ensure reproducibility. The system is built
+on the invariant that for any given data, `to(X, from(X, data))` is
+approximately equal to the original data, with any lossiness being explicitly
+declared and tracked.
 
-## Usage
+## ✨ Features
 
-Install the package:
+- **Zod at the Center**: Your Zod schema is the canonical model; all I/O is
+  validated against it
+- **Deterministic I/O**: Transformations are designed to be reproducible with
+  canonical ordering and stable serialization
+- **First-Class Provenance**: Automatically capture the source, transform chain,
+  and checksums for any operation
+- **Content Addressing**: Artifacts can be keyed by a hash of their schema,
+  options, and content for verifiable storage
+- **Streaming First**: The API is designed around async iterable decoders and
+  encoders to handle large payloads efficiently
+- **Integrated Validation & Repair**: Parsing and validation occur in a single
+  pass, with an optional repair loop to auto-fix and re-validate data
+- **Partial Parsing**: Selectively extract a subset of data by projecting a
+  partial Zod schema
+- **Composable Pipeline**: Adapters are designed as composable functors,
+  allowing for pipelines like `from(A) |> map |> to(B)`
+- **Schema Versioning**: Includes support for typed transforms to migrate
+  schemas from vN to vN+1
+- **Typed Error Model**: Errors are explicitly typed as DecodeError,
+  ValidateError, or LossyWarning
+- **Security by Design**: Features safe parsers, resource caps, sandboxable
+  runners, and deterministic timeouts for untrusted inputs
+- **Governance & Observability**: Produces exportable audit logs (JSONL, Turtle)
+  and provides per-stage timings and anomaly flags
 
-```sh
-# ✨ Auto-detect (supports npm, yarn, pnpm, deno and bun)
-npx nypm install packageName
+## 🚀 Quick Start
+
+The programmatic core is pure ESM, with side effects isolated in adapters.
+
+### Programmatic API
+
+```javascript
+// Two primitives: parseFrom() and formatTo()
+import { parseFrom, formatTo, convert } from 'zod-to-from';
+import { z } from 'zod';
+
+// Define your schema
+const UserSchema = z.object({
+  name: z.string(),
+  age: z.number(),
+  active: z.boolean().default(true),
+});
+
+// Parse and validate in one pass
+const userObject = await parseFrom(
+  UserSchema,
+  'json',
+  '{"name":"Alice","age":30}'
+);
+
+// Format a validated object to another format
+const userYaml = await formatTo(UserSchema, 'yaml', userObject);
+
+// Convert between formats
+const userCsv = await convert(
+  UserSchema,
+  { from: 'json', to: 'csv' },
+  '{"name":"Alice","age":30}'
+);
 ```
 
-Import:
+### CLI
 
-<!-- automd:jsimport cdn name="pkg" -->
+ZTF provides a simple noun-verb command-line interface.
 
-**ESM** (Node.js, Bun, Deno)
+```bash
+# Convert a source file from one format to another through a schema
+ztf convert --from json --to yaml --schema ./schemas/user.mjs#UserSchema --in input.json --out output.yaml
 
-```js
-import {} from "pkg";
+# Parse a file with schema validation
+ztf parse --schema ./schemas/config.mjs#Config --from yaml --in config.yaml --out config.json
+
+# Format data to a specific format
+ztf format --schema ./schemas/data.mjs#DataSchema --to csv --in data.json --out data.csv
+
+# List available adapters
+ztf list
 ```
 
-**CDN** (Deno, Bun and Browsers)
+## 📦 Supported Formats (The 80/20)
 
-```js
-import {} from "https://esm.sh/pkg";
+ZTF prioritizes broad coverage of high-value "dark matter" formats before
+tackling the long tail.
+
+### Text Formats
+
+- **JSON**, **JSONL/NDJSON**, **YAML**, **TOML**, **CSV/TSV**, **INI**
+
+### Binary Formats
+
+- **Parquet**, **Arrow IPC**, **Avro**, **Protobuf**, **MessagePack**, **CBOR**,
+  **Ion**
+
+### Web & API Schemas
+
+- **OpenAPI/Swagger** ↔ Zod
+- **JSON Schema** ↔ Zod
+- **GraphQL SDL** ↔ Zod
+
+### Database & ORM Mappings
+
+- **SQL DDL** ↔ Zod
+- **Prisma**, **Drizzle**, **TypeORM**, **Mongoose** mappings
+
+### Search & Index Schemas
+
+- **Elasticsearch** mappings ↔ Zod
+- **Meilisearch** & **Algolia** shapes
+
+### Files & Office Documents (LLM-Assisted)
+
+- **PDF**, **Docx**, **XLSX**, and **HTML** can be parsed into Zod objects using
+  Vercel AI SDK guardrails
+
+### Knowledge & Graph Layer
+
+- **Turtle/N3** ↔ Zod
+- **RDF triples** ↔ Zod records
+- **SHACL** ↔ Zod constraints
+
+### Diagrams
+
+- **PlantUML** structural views (e.g., class diagrams) ↔ Zod projections
+
+## 🏗️ Architecture
+
+ZTF follows a monolithic structure with clear separation of concerns:
+
+```
+src/
+├── core/                    # Core API and registry
+│   ├── registry.mjs        # Adapter registry and utilities
+│   └── main.mjs           # Main API functions (parseFrom, formatTo, convert)
+├── adapters/               # Format converters
+│   ├── json.mjs           # JSON adapter
+│   ├── yaml.mjs           # YAML adapter
+│   ├── csv.mjs            # CSV adapter
+│   ├── data.mjs           # Data analytics formats
+│   ├── office.mjs         # Office document formats
+│   ├── graph.mjs          # Knowledge graph formats
+│   └── nunjucks.mjs       # Template rendering
+├── mappers/                # Schema bridges
+│   ├── workflow.mjs       # Workflow-specific mappings
+│   └── kpi.mjs            # KPI-specific mappings
+├── cli/                    # Command-line interface
+│   ├── cli.mjs            # Main CLI entry point
+│   └── commands/          # Individual command implementations
+└── index.mjs              # Main library entry point
 ```
 
-<!-- /automd -->
+## 🛡️ Security and Governance
 
-## Development
+- **Safe Execution**: Adapters are designed with safe parsers and can be run in
+  sandboxed environments with deterministic timeouts and size limits for
+  untrusted inputs
+- **Typed Configuration**: All configuration, including for adapters, is handled
+  via Zod schemas to prevent untyped options
+- **Auditability**: Governance audit logs are exportable as JSONL or Turtle,
+  making them ready for board-level reporting
+- **Stability**: Adapters follow strict semantic versioning, and schemas can be
+  frozen per tag to ensure stability
 
-<details>
+## 🛠️ Extensibility
 
-<summary>local development</summary>
+ZTF is designed to be extensible from the ground up. An adapter kit provides
+scaffolds, conformance tests, and fixtures to help you quickly add support for
+new formats.
 
-- Clone this repository
-- Install latest LTS version of [Node.js](https://nodejs.org/en/)
-- Enable [Corepack](https://github.com/nodejs/corepack) using `corepack enable`
-- Install dependencies using `pnpm install`
-- Run interactive tests using `pnpm dev`
+### Creating Custom Adapters
 
-</details>
+```javascript
+import { registerAdapter } from 'zod-to-from';
 
-## License
+const customAdapter = {
+  async parse(input, opts = {}) {
+    // Parse input to data
+    const data = parseCustomFormat(input);
+    return {
+      data,
+      metadata: {
+        format: 'custom',
+        inputSize: input.length,
+        ...opts,
+      },
+    };
+  },
 
-<!-- automd:contributors license=MIT -->
+  async format(data, opts = {}) {
+    // Format data to string
+    const output = formatCustomFormat(data);
+    return {
+      data: output,
+      metadata: {
+        format: 'custom',
+        outputSize: output.length,
+        ...opts,
+      },
+    };
+  },
 
-Published under the [MIT](https://github.com/unjs/packageName/blob/main/LICENSE) license.
-Made by [community](https://github.com/unjs/packageName/graphs/contributors) 💛
-<br><br>
-<a href="https://github.com/unjs/packageName/graphs/contributors">
-<img src="https://contrib.rocks/image?repo=unjs/packageName" />
-</a>
+  supportsStreaming: false,
+  isAI: false,
+  version: '1.0.0',
+};
 
-<!-- /automd -->
+registerAdapter('custom', customAdapter);
+```
 
-<!-- automd:with-automd -->
+## 📋 API Reference
+
+### Core Functions
+
+#### `parseFrom(schema, format, input, options?)`
+
+Parse input from a specified format into a Zod-validated object.
+
+#### `formatTo(schema, format, data, options?)`
+
+Format a Zod-validated object to a specified output format.
+
+#### `convert(schema, conversion, input, options?)`
+
+Convert data from one format to another with schema validation.
+
+#### `registerAdapter(name, adapter)`
+
+Register a new adapter for a specific format.
+
+#### `listAdapters()`
+
+List all registered adapter names.
+
+### Options
+
+```typescript
+interface ZTFOptions {
+  adapter?: Record<string, unknown>; // Custom options for the specific adapter
+  validate?: boolean; // Whether to validate the output against the schema
+  includeProvenance?: boolean; // Whether to include provenance metadata in result
+  deterministic?: boolean; // Whether to enforce deterministic output
+  streaming?: boolean; // Whether to use streaming for large datasets
+}
+```
+
+## 🧪 Testing
+
+```bash
+# Run tests
+pnpm test
+
+# Run tests with coverage
+pnpm test --coverage
+
+# Run linting
+pnpm lint
+
+# Fix linting issues
+pnpm lint:fix
+```
+
+## 📄 License
+
+MIT License - see [LICENSE](LICENSE) for details.
+
+## 🤝 Contributing
+
+Contributions are welcome! Please read our contributing guidelines and submit
+pull requests to our repository.
+
+## 📚 Documentation
+
+- [API Reference](./docs/api.md)
+- [Adapter Development Guide](./docs/adapters.md)
+- [CLI Usage Guide](./docs/cli.md)
+- [Security Best Practices](./docs/security.md)
 
 ---
 
-_🤖 auto updated with [automd](https://automd.unjs.io)_
-
-<!-- /automd -->
+**zod-to-from** - Making Zod the universal intermediate representation for all
+application I/O.

@@ -1,0 +1,18 @@
+{
+    "sourceFile": "src/cli/commands/adapter.mjs",
+    "activeCommit": 0,
+    "commits": [
+        {
+            "activePatchIndex": 0,
+            "patches": [
+                {
+                    "date": 1758644495329,
+                    "content": "Index: \n===================================================================\n--- \n+++ \n"
+                }
+            ],
+            "date": 1758644495329,
+            "name": "Commit-0",
+            "content": "/**\n * Adapter command implementations\n * @fileoverview Commands for managing and inspecting adapters\n */\n\nimport { getAdapterInfo, listAdapters, listAdaptersWithInfo } from '../../core/index.mjs';\n\n/**\n * List command - List all available adapters\n * @param {Object} options - Command options\n */\nexport async function list(options) {\n  try {\n    const adapters = listAdapters();\n    console.log('📦 Available adapters:');\n    for (const adapter of adapters) {\n      console.log(`  • ${adapter}`);\n    }\n  } catch (error) {\n    console.error(`❌ List failed: ${error.message}`);\n    throw error;\n  }\n}\n\n/**\n * Info command - Show detailed information about adapters\n * @param {Object} options - Command options\n */\nexport async function info(options) {\n  try {\n    const { name } = options;\n\n    if (name) {\n      // Show info for specific adapter\n      const info = getAdapterInfo(name);\n      if (!info) {\n        throw new Error(`Adapter '${name}' not found`);\n      }\n\n      console.log(`📋 Adapter: ${info.name}`);\n      console.log(`  Version: ${info.version}`);\n      console.log(`  Streaming: ${info.supportsStreaming ? '✅' : '❌'}`);\n      console.log(`  AI-powered: ${info.isAI ? '✅' : '❌'}`);\n      console.log(`  Parse: ${info.hasParse ? '✅' : '❌'}`);\n      console.log(`  Format: ${info.hasFormat ? '✅' : '❌'}`);\n    } else {\n      // Show info for all adapters\n      const adapters = listAdaptersWithInfo();\n      console.log('📋 Adapter Information:');\n      for (const adapter of adapters) {\n        console.log(`\\n  ${adapter.name}:`);\n        console.log(`    Version: ${adapter.version}`);\n        console.log(`    Streaming: ${adapter.supportsStreaming ? '✅' : '❌'}`);\n        console.log(`    AI-powered: ${adapter.isAI ? '✅' : '❌'}`);\n        console.log(`    Parse: ${adapter.hasParse ? '✅' : '❌'}`);\n        console.log(`    Format: ${adapter.hasFormat ? '✅' : '❌'}`);\n      }\n    }\n  } catch (error) {\n    console.error(`❌ Info failed: ${error.message}`);\n    throw error;\n  }\n}\n"
+        }
+    ]
+}

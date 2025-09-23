@@ -1,0 +1,9 @@
+{
+  "host": "localhost",
+  "port": "invalid-port",
+  "debug": "not-a-boolean",
+  "database": {
+    "url": "not-a-url",
+    "pool": -1
+  }
+}

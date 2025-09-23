@@ -1,0 +1,23 @@
+{
+  "id": "123e4567-e89b-12d3-a456-426614174000",
+  "metadata": {
+    "tags": ["important", "test"],
+    "score": 90,
+    "nested": {
+      "value": "test-value",
+      "optional": "present"
+    }
+  },
+  "items": [
+    {
+      "id": 1,
+      "name": "Item 1",
+      "active": true
+    },
+    {
+      "id": 2,
+      "name": "Item 2",
+      "active": false
+    }
+  ]
+}

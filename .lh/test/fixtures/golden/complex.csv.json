@@ -1,0 +1,18 @@
+{
+    "sourceFile": "test/fixtures/golden/complex.csv",
+    "activeCommit": 0,
+    "commits": [
+        {
+            "activePatchIndex": 0,
+            "patches": [
+                {
+                    "date": 1758645129688,
+                    "content": "Index: \n===================================================================\n--- \n+++ \n"
+                }
+            ],
+            "date": 1758645129688,
+            "name": "Commit-0",
+            "content": "id,name,active\n1,Item 1,true\n2,Item 2,false\n"
+        }
+    ]
+}

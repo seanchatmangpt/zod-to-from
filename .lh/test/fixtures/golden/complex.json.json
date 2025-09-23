@@ -1,0 +1,18 @@
+{
+    "sourceFile": "test/fixtures/golden/complex.json",
+    "activeCommit": 0,
+    "commits": [
+        {
+            "activePatchIndex": 0,
+            "patches": [
+                {
+                    "date": 1758645129729,
+                    "content": "Index: \n===================================================================\n--- \n+++ \n"
+                }
+            ],
+            "date": 1758645129729,
+            "name": "Commit-0",
+            "content": "{\n  \"id\": \"123e4567-e89b-12d3-a456-426614174000\",\n  \"metadata\": {\n    \"tags\": [\"important\", \"test\"],\n    \"score\": 90,\n    \"nested\": {\n      \"value\": \"test-value\",\n      \"optional\": \"present\"\n    }\n  },\n  \"items\": [\n    {\n      \"id\": 1,\n      \"name\": \"Item 1\",\n      \"active\": true\n    },\n    {\n      \"id\": 2,\n      \"name\": \"Item 2\",\n      \"active\": false\n    }\n  ]\n}\n"
+        }
+    ]
+}

@@ -1,0 +1,9 @@
+{
+  "name": "John Doe",
+  "age": 30,
+  "active": true,
+  "metadata": {
+    "tags": ["user", "active"],
+    "score": 85.5
+  }
+}

@@ -1,0 +1,18 @@
+{
+    "sourceFile": "test-data.json",
+    "activeCommit": 0,
+    "commits": [
+        {
+            "activePatchIndex": 0,
+            "patches": [
+                {
+                    "date": 1758644495282,
+                    "content": "Index: \n===================================================================\n--- \n+++ \n"
+                }
+            ],
+            "date": 1758644495282,
+            "name": "Commit-0",
+            "content": "{\n  \"host\": \"localhost\",\n  \"port\": 3000,\n  \"debug\": true,\n  \"database\": {\n    \"url\": \"postgresql://localhost:5432/testdb\",\n    \"pool\": 10\n  },\n  \"features\": [\"auth\", \"logging\"]\n}\n"
+        }
+    ]
+}

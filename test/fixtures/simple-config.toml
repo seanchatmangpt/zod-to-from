@@ -1,0 +1,9 @@
+host = "localhost"
+port = 3000
+debug = true
+
+[database]
+url = "postgresql://localhost:5432/testdb"
+pool = 10
+
+features = ["auth", "logging"]
