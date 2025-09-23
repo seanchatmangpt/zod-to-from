@@ -2,8 +2,13 @@
  * Unit tests for Graph & Knowledge adapters
  */
 
-import { describe, it, expect } from 'vitest';
-import { jsonldAdapter, nqAdapter, plantumlAdapter, ttlAdapter } from '../../src/adapters/graph.mjs';
+import { describe, expect, it } from 'vitest';
+import {
+  jsonldAdapter,
+  nqAdapter,
+  plantumlAdapter,
+  ttlAdapter,
+} from '../../src/adapters/graph.mjs';
 
 describe('Graph & Knowledge Adapters', () => {
   describe('JSON-LD Adapter', () => {
@@ -11,12 +16,12 @@ describe('Graph & Knowledge Adapters', () => {
       const input = JSON.stringify({
         '@context': 'https://schema.org',
         '@type': 'Person',
-        'name': 'John Doe',
-        'email': 'john@example.com',
+        name: 'John Doe',
+        email: 'john@example.com',
       });
 
       const result = await jsonldAdapter.parse(input);
-      
+
       expect(result.data).toBeDefined();
       expect(result.metadata.format).toBe('jsonld');
       expect(result.metadata.context).toBe('https://schema.org');
@@ -24,14 +29,16 @@ describe('Graph & Knowledge Adapters', () => {
     });
 
     it('should format data to JSON-LD', async () => {
-      const data = [{
-        '@type': 'Person',
-        'name': 'John Doe',
-        'email': 'john@example.com',
-      }];
+      const data = [
+        {
+          '@type': 'Person',
+          name: 'John Doe',
+          email: 'john@example.com',
+        },
+      ];
 
       const result = await jsonldAdapter.format(data);
-      
+
       expect(result.data).toContain('Person');
       expect(result.data).toContain('John Doe');
       expect(result.metadata.format).toBe('jsonld');
@@ -39,17 +46,18 @@ describe('Graph & Knowledge Adapters', () => {
 
     it('should handle invalid JSON-LD', async () => {
       const input = 'invalid json';
-      
+
       await expect(jsonldAdapter.parse(input)).rejects.toThrow('Invalid JSON-LD');
     });
   });
 
   describe('N-Quads Adapter', () => {
     it('should parse N-Quads content', async () => {
-      const input = '<http://example.org/subject> <http://example.org/predicate> "object" .\n<http://example.org/subject2> <http://example.org/predicate2> "object2" .';
+      const input =
+        '<http://example.org/subject> <http://example.org/predicate> "object" .\n<http://example.org/subject2> <http://example.org/predicate2> "object2" .';
 
       const result = await nqAdapter.parse(input);
-      
+
       expect(result.data).toHaveLength(2);
       expect(result.data[0].subject).toBe('http://example.org/subject');
       expect(result.data[0].predicate).toBe('http://example.org/predicate');
@@ -69,7 +77,7 @@ describe('Graph & Knowledge Adapters', () => {
       ];
 
       const result = await nqAdapter.format(data);
-      
+
       expect(result.data).toContain('http://example.org/subject');
       expect(result.data).toContain('http://example.org/predicate');
       expect(result.data).toContain('object');
@@ -90,7 +98,7 @@ note over Alice: This is a note
       `;
 
       const result = await plantumlAdapter.parse(input);
-      
+
       expect(result.data.type).toBe('diagram');
       expect(result.data.title).toBe('Test Diagram');
       expect(result.data.participants).toHaveLength(2);
@@ -114,7 +122,7 @@ note over Alice: This is a note
       };
 
       const result = await plantumlAdapter.format(data);
-      
+
       expect(result.data).toContain('@startuml');
       expect(result.data).toContain('title Test Diagram');
       expect(result.data).toContain('participant Alice');
@@ -126,7 +134,7 @@ note over Alice: This is a note
     it('should handle empty PlantUML', async () => {
       const input = '@startuml\n@enduml';
       const result = await plantumlAdapter.parse(input);
-      
+
       expect(result.data.type).toBe('diagram');
       expect(result.data.title).toBe('');
       expect(result.data.participants).toHaveLength(0);
@@ -142,7 +150,7 @@ ex:subject2 ex:predicate2 "object2" .
       `;
 
       const result = await ttlAdapter.parse(input);
-      
+
       expect(result.data).toBeDefined();
       expect(result.metadata.format).toBe('ttl');
     });
@@ -158,7 +166,7 @@ ex:subject2 ex:predicate2 "object2" .
       ];
 
       const result = await ttlAdapter.format(data);
-      
+
       expect(result.data).toBeDefined();
       expect(result.metadata.format).toBe('ttl');
     });

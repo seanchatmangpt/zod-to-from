@@ -3,11 +3,15 @@
     "activeCommit": 0,
     "commits": [
         {
-            "activePatchIndex": 0,
+            "activePatchIndex": 1,
             "patches": [
                 {
                     "date": 1758645129729,
                     "content": "Index: \n===================================================================\n--- \n+++ \n"
+                },
+                {
+                    "date": 1758647896694,
+                    "content": "Index: \n===================================================================\n--- \n+++ \n@@ -1,13 +1,9 @@\n {\n   \"id\": \"123e4567-e89b-12d3-a456-426614174000\",\n   \"metadata\": {\n     \"tags\": [\"important\", \"test\"],\n-    \"score\": 90,\n-    \"nested\": {\n-      \"value\": \"test-value\",\n-      \"optional\": \"present\"\n-    }\n+    \"score\": 90\n   },\n   \"items\": [\n     {\n       \"id\": 1,\n"
                 }
             ],
             "date": 1758645129729,

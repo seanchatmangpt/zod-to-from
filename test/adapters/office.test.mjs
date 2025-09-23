@@ -2,8 +2,8 @@
  * Unit tests for Office & Exec Outputs adapters
  */
 
-import { describe, it, expect } from 'vitest';
-import { htmlAdapter, mdAdapter, csvAdapter } from '../../src/adapters/office.mjs';
+import { describe, expect, it } from 'vitest';
+import { csvAdapter, htmlAdapter, mdAdapter } from '../../src/adapters/office.mjs';
 
 describe('Office & Exec Outputs Adapters', () => {
   describe('HTML Adapter', () => {
@@ -25,7 +25,7 @@ describe('Office & Exec Outputs Adapters', () => {
       `;
 
       const result = await htmlAdapter.parse(input);
-      
+
       expect(result.data.title).toBe('Test Page');
       expect(result.data.meta.description).toBe('Test description');
       expect(result.data.links).toHaveLength(1);
@@ -45,7 +45,7 @@ describe('Office & Exec Outputs Adapters', () => {
       };
 
       const result = await htmlAdapter.format(data);
-      
+
       expect(result.data).toContain('<title>Test Page</title>');
       expect(result.data).toContain('Test description');
       expect(result.data).toContain('https://example.com');
@@ -56,7 +56,7 @@ describe('Office & Exec Outputs Adapters', () => {
     it('should handle empty HTML', async () => {
       const input = '<html><body></body></html>';
       const result = await htmlAdapter.parse(input);
-      
+
       expect(result.data.title).toBe('');
       expect(result.data.links).toHaveLength(0);
       expect(result.data.images).toHaveLength(0);
@@ -82,7 +82,7 @@ Another paragraph.
       `;
 
       const result = await mdAdapter.parse(input);
-      
+
       expect(result.data.title).toBe('Main Title');
       expect(result.data.headings).toHaveLength(2);
       expect(result.data.headings[0].level).toBe(1);
@@ -107,7 +107,7 @@ Another paragraph.
       };
 
       const result = await mdAdapter.format(data);
-      
+
       expect(result.data).toContain('# Test Document');
       expect(result.data).toContain('## Subtitle');
       expect(result.data).toContain('First paragraph.');
@@ -119,7 +119,7 @@ Another paragraph.
     it('should handle empty Markdown', async () => {
       const input = '';
       const result = await mdAdapter.parse(input);
-      
+
       expect(result.data.title).toBe('');
       expect(result.data.headings).toHaveLength(0);
       expect(result.data.paragraphs).toHaveLength(0);
@@ -130,10 +130,10 @@ Another paragraph.
     it('should parse CSV data', async () => {
       const input = 'name,age,active\nAlice,25,true\nBob,30,false';
       const result = await csvAdapter.parse(input);
-      
-      expect(result.data).toEqual([
-        { name: 'Alice', age: '25', active: 'true' },
-        { name: 'Bob', age: '30', active: 'false' },
+
+      expect(result.data.items).toEqual([
+        { name: 'Alice', age: 25, active: true },
+        { name: 'Bob', age: 30, active: false },
       ]);
       expect(result.metadata.format).toBe('csv');
       expect(result.metadata.recordCount).toBe(2);
@@ -145,7 +145,7 @@ Another paragraph.
         { name: 'Bob', age: 30, active: false },
       ];
       const result = await csvAdapter.format(data);
-      
+
       expect(result.data).toContain('name,age,active');
       expect(result.data).toContain('Alice,25,true');
       expect(result.data).toContain('Bob,30,false');

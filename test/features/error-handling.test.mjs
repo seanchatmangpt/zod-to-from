@@ -5,7 +5,7 @@
 
 import { beforeEach, describe, expect, it } from 'vitest';
 import { z } from 'zod';
-import { convert, formatTo, parseFrom } from '../../src/core/main.mjs';
+import { convert, formatTo, parseFrom } from '../setup.mjs';
 
 describe('Error Handling', () => {
   const SimpleSchema = z.object({

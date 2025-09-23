@@ -5,8 +5,7 @@
 
 import { afterEach, beforeEach, describe, expect, it } from 'vitest';
 import { z } from 'zod';
-import { convert, formatTo, parseFrom } from '../../src/core/main.mjs';
-import { registerAdapter } from '../../src/core/registry.mjs';
+import { convert, formatTo, parseFrom, registerAdapter } from '../setup.mjs';
 
 describe('Core API - Main Functions', () => {
   // Test schemas for different data types
@@ -114,10 +113,15 @@ describe('Core API - Main Functions', () => {
         isAI: false,
       });
 
+      // Use a schema that matches the test data
+      const TestSchema = z.object({
+        name: z.string(),
+      });
+
       const input = '{"name": "Test"}';
       const customOptions = { custom: 'value', nested: { option: true } };
 
-      await parseFrom(SimpleSchema, 'test-options', input, { adapter: customOptions });
+      await parseFrom(TestSchema, 'test-options', input, { adapter: customOptions });
 
       expect(receivedOptions).toEqual(customOptions);
     });
@@ -234,10 +238,15 @@ describe('Core API - Main Functions', () => {
         isAI: false,
       });
 
+      // Use a schema that matches the test data
+      const TestSchema = z.object({
+        name: z.string(),
+      });
+
       const data = { name: 'Test' };
       const customOptions = { indent: 4, sortKeys: true };
 
-      await formatTo(SimpleSchema, 'test-format-options', data, { adapter: customOptions });
+      await formatTo(TestSchema, 'test-format-options', data, { adapter: customOptions });
 
       expect(receivedOptions).toEqual(customOptions);
     });
@@ -274,9 +283,14 @@ describe('Core API - Main Functions', () => {
     });
 
     it('should throw error for unknown target format', async () => {
+      // Use a schema that matches the test data
+      const TestSchema = z.object({
+        name: z.string(),
+      });
+
       const input = '{"name": "Test"}';
 
-      await expect(convert(SimpleSchema, { from: 'json', to: 'unknown' }, input)).rejects.toThrow(
+      await expect(convert(TestSchema, { from: 'json', to: 'unknown' }, input)).rejects.toThrow(
         'No adapter found for format: unknown'
       );
     });

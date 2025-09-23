@@ -2,11 +2,7 @@
   "id": "123e4567-e89b-12d3-a456-426614174000",
   "metadata": {
     "tags": ["important", "test"],
-    "score": 90,
-    "nested": {
-      "value": "test-value",
-      "optional": "present"
-    }
+    "score": 90
   },
   "items": [
     {

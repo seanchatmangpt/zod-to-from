@@ -1,18 +1,22 @@
 {
-  "sourceFile": "src/index.mjs",
-  "activeCommit": 0,
-  "commits": [
-    {
-      "activePatchIndex": 0,
-      "patches": [
+    "sourceFile": "src/index.mjs",
+    "activeCommit": 0,
+    "commits": [
         {
-          "date": 1758643834024,
-          "content": "Index: \n===================================================================\n--- \n+++ \n"
+            "activePatchIndex": 1,
+            "patches": [
+                {
+                    "date": 1758643834024,
+                    "content": "Index: \n===================================================================\n--- \n+++ \n"
+                },
+                {
+                    "date": 1758645706309,
+                    "content": "Index: \n===================================================================\n--- \n+++ \n@@ -0,0 +1,18 @@\n+/**\n+ * Main entry point for zod-to-from library\n+ * Re-exports all core functionality and adapters\n+ */\n+\n+// Import and register all adapters first\n+import './adapters/ai.mjs';\n+import './adapters/communications.mjs';\n+import './adapters/data.mjs';\n+import './adapters/devops.mjs';\n+import './adapters/geo.mjs';\n+import './adapters/graph.mjs';\n+import './adapters/media.mjs';\n+import './adapters/office.mjs';\n+import './adapters/templating.mjs';\n+\n+// Export core functionality\n+export * from './core/index.mjs';\n"
+                }
+            ],
+            "date": 1758643834024,
+            "name": "Commit-0",
+            "content": "/**\n * Main entry point for zod-to-from library\n * Re-exports all core functionality and adapters\n */\n\n// Import and register data adapters first\nimport './adapters/data.mjs';\n\n// Export core functionality\nexport * from './core/index.mjs';\n"
         }
-      ],
-      "date": 1758643834024,
-      "name": "Commit-0",
-      "content": "/**\n * Main entry point for zod-to-from library\n * Re-exports all core functionality and adapters\n */\n\n// Import and register data adapters first\nimport './adapters/data.mjs';\n\n// Export core functionality\nexport * from './core/index.mjs';\n"
-    }
-  ]
+    ]
 }

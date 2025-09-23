@@ -5,7 +5,7 @@
 
 import { beforeEach, describe, expect, it } from 'vitest';
 import { z } from 'zod';
-import { convert, formatTo, parseFrom } from '../../src/core/main.mjs';
+import { convert, formatTo, parseFrom } from '../setup.mjs';
 
 describe('CSV Adapter', () => {
   const SimpleCSVSchema = z.object({
@@ -66,7 +66,18 @@ Jane,25,false`;
 John,30,
 Jane,,false`;
 
-      const result = await parseFrom(ArrayCSVSchema, 'csv', csvInput);
+      // Use a schema that allows empty strings for this test
+      const EmptyValuesSchema = z.object({
+        items: z.array(
+          z.object({
+            name: z.string(),
+            age: z.union([z.number(), z.string()]),
+            active: z.union([z.boolean(), z.string()]),
+          })
+        ),
+      });
+
+      const result = await parseFrom(EmptyValuesSchema, 'csv', csvInput);
 
       expect(result.items).toHaveLength(2);
       expect(result.items[0].active).toBe('');

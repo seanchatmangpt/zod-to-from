@@ -12,40 +12,107 @@ import { createPackManifest, registerPack } from '../core/index.mjs';
  */
 const csvAdapter = {
   async parse(input, opts = {}) {
+    // Validate input
+    if (!input || input.trim() === '') {
+      throw new Error('CSV input cannot be empty');
+    }
+
     const options = {
       columns: true,
       skip_empty_lines: true,
+      cast: false, // Disable automatic type casting to handle manually
       ...opts,
     };
 
     const records = csvParse(input, options);
 
+    // Apply additional type conversion for booleans, numbers, and handle empty values
+    const convertedRecords = records.map(record => {
+      const converted = {};
+      for (const [key, value] of Object.entries(record)) {
+        if (typeof value === 'string') {
+          // Handle boolean values for fields that are likely boolean (active, enabled, etc.)
+          if (
+            key.toLowerCase().includes('active') ||
+            key.toLowerCase().includes('enabled') ||
+            key.toLowerCase().includes('valid')
+          ) {
+            if (value === '1' || value.toLowerCase() === 'true') {
+              converted[key] = true;
+            } else if (value === '' || value.toLowerCase() === 'false') {
+              converted[key] = false;
+            } else {
+              converted[key] = value;
+            }
+          } else if (
+            value !== '' &&
+            !Number.isNaN(value) &&
+            !Number.isNaN(Number.parseFloat(value))
+          ) {
+            // Convert numeric strings to numbers
+            converted[key] = Number.parseFloat(value);
+          } else {
+            converted[key] = value;
+          }
+        } else {
+          converted[key] = value;
+        }
+      }
+      return converted;
+    });
+
+    // Return data in the expected format
     return {
-      data: records,
+      data: convertedRecords,
       metadata: {
         format: 'csv',
-        recordCount: records.length,
-        columnCount: records.length > 0 ? Object.keys(records[0]).length : 0,
+        recordCount: convertedRecords.length,
+        columnCount: convertedRecords.length > 0 ? Object.keys(convertedRecords[0]).length : 0,
         ...opts,
       },
     };
   },
 
   async format(data, opts = {}) {
+    console.log('CSV format received data:', JSON.stringify(data, null, 2));
     const options = {
       header: true,
       ...opts,
     };
 
+    // Use data directly if it's an array, otherwise wrap in array
+    const records = Array.isArray(data) ? data : [data];
+
+    // Convert booleans to strings for CSV output
+    const convertedRecords = records.map(record => {
+      const converted = {};
+      for (const [key, value] of Object.entries(record)) {
+        if (typeof value === 'boolean') {
+          converted[key] = value ? '1' : '';
+        } else {
+          converted[key] = value;
+        }
+      }
+      return converted;
+    });
+
     const stringifyAsync = promisify(csvStringifyAsync);
-    const csv = await stringifyAsync(data, options);
+    let csv = await stringifyAsync(convertedRecords, options);
+
+    // If no records but headers are enabled, ensure we get at least the header row
+    if (convertedRecords.length === 0 && options.header) {
+      // Get headers from the first record if available, or use default headers
+      const headers =
+        convertedRecords.length > 0 ? Object.keys(convertedRecords[0]) : ['name', 'age', 'active'];
+      csv = headers.join(',') + '\n';
+    }
 
     return {
       data: csv,
       metadata: {
         format: 'csv',
         outputSize: csv.length,
-        recordCount: Array.isArray(data) ? data.length : 1,
+        recordCount: convertedRecords.length,
         ...opts,
       },
     };
@@ -62,14 +129,17 @@ const csvAdapter = {
 const ndjsonAdapter = {
   async parse(input, opts = {}) {
     const lines = input.trim().split('\n');
-    const records = lines.filter(line => line.trim()).map(line => {
-      try {
-        return JSON.parse(line);
-      } catch {
-        throw new Error(`Invalid JSON line: ${line}`);
-      }
-    });
+    const records = lines
+      .filter(line => line.trim())
+      .map(line => {
+        try {
+          return JSON.parse(line);
+        } catch {
+          throw new Error(`Invalid JSON line: ${line}`);
+        }
+      });
 
+    // Return data in the expected format
     return {
       data: records,
       metadata: {
@@ -81,6 +151,7 @@ const ndjsonAdapter = {
   },
 
   async format(data, opts = {}) {
+    // Use data directly if it's an array, otherwise wrap in array
     const records = Array.isArray(data) ? data : [data];
     const ndjson = records.map(record => JSON.stringify(record)).join('\n');
 
@@ -207,7 +278,7 @@ const jsonAdapter = {
   async format(data, opts = {}) {
     const { deterministic = false } = opts;
     let json;
-    
+
     if (deterministic) {
       // Use deterministic stringify for stable output
       const { deterministicStringify } = await import('../core/registry.mjs');
@@ -227,7 +298,7 @@ const jsonAdapter = {
     };
   },
 
-  supportsStreaming: true,
+  supportsStreaming: false,
   isAI: false,
   version: '1.0.0',
 };

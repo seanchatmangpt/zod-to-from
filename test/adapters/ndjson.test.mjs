@@ -5,7 +5,7 @@
 
 import { beforeEach, describe, expect, it } from 'vitest';
 import { z } from 'zod';
-import { convert, formatTo, parseFrom } from '../../src/core/main.mjs';
+import { convert, formatTo, parseFrom } from '../setup.mjs';
 
 describe('NDJSON Adapter', () => {
   const SimpleNDJSONSchema = z.object({
@@ -288,8 +288,8 @@ not-json-line
     });
 
     it('should handle round-trip with special characters', async () => {
-      const originalNDJSON = `{"name": "John "The Great"", "age": 30, "active": true}
-{"name": "Jane\nSmith", "age": 25, "active": false}`;
+      const originalNDJSON = `{"name": "John \\"The Great\\"", "age": 30, "active": true}
+{"name": "Jane\\nSmith", "age": 25, "active": false}`;
 
       // Parse then format
       const parsed = await parseFrom(SimpleNDJSONSchema, 'ndjson', originalNDJSON);

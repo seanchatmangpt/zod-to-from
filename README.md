@@ -280,6 +280,37 @@ pnpm lint
 pnpm lint:fix
 ```
 
+### 🤖 AI Adapter Testing
+
+The AI adapters include comprehensive tests that verify integration with Ollama
+models. These tests are **opt-in only** to keep the regular test suite fast:
+
+```bash
+# Run AI adapter tests (requires Ollama running locally)
+pnpm test:ai
+
+# Run AI adapter tests in watch mode
+pnpm test:ai:watch
+
+# Run regular tests (AI tests are skipped by default)
+pnpm test
+```
+
+**Prerequisites for AI tests:**
+
+- Ollama installed and running locally
+- At least one model available (e.g., `qwen3-coder`, `qwen3:8b`)
+- Test files available in
+  `node_modules/.pnpm/mammoth@*/node_modules/mammoth/test/test-data/`
+
+The AI tests verify:
+
+- ✅ Real document processing (DOCX files)
+- ✅ Multiple model support
+- ✅ Custom prompt handling
+- ✅ Schema validation
+- ✅ Error handling
+
 ## 📄 License
 
 MIT License - see [LICENSE](LICENSE) for details.

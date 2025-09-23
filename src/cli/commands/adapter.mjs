@@ -3,9 +3,9 @@
  * @fileoverview Commands for managing and inspecting adapters following noun-verb structure
  */
 
-import { getAdapterInfo, listAdapters, listAdaptersWithInfo, getAdapter } from '../../core/index.mjs';
-import { readFile, writeFile, mkdir } from 'node:fs/promises';
-import { join, dirname } from 'node:path';
+import { mkdir, readFile, writeFile } from 'node:fs/promises';
+import { join } from 'node:path';
+import { getAdapter, getAdapterInfo, listAdaptersWithInfo } from '../../core/index.mjs';
 
 /**
  * List command - List all available adapters with filtering and output options
@@ -17,27 +17,26 @@ import { join, dirname } from 'node:path';
 export async function list(options = {}) {
   try {
     const { pack, verbose = false, json = false } = options;
-    
+
     let adapters = listAdaptersWithInfo();
-    
+
     // Filter by pack if specified
     if (pack) {
       const packNames = pack.split(',').map(p => p.trim());
       adapters = adapters.filter(adapter => {
         // For now, we'll use a simple heuristic based on adapter names
         // In a real implementation, adapters would have pack metadata
-        return packNames.some(packName => 
-          adapter.name.includes(packName) || 
-          adapter.name.startsWith(packName)
+        return packNames.some(
+          packName => adapter.name.includes(packName) || adapter.name.startsWith(packName)
         );
       });
     }
-    
+
     if (json) {
-      console.log(JSON.stringify(adapters, null, 2));
+      console.log(JSON.stringify(adapters, undefined, 2));
       return;
     }
-    
+
     if (verbose) {
       console.log('📦 Available adapters:');
       for (const adapter of adapters) {
@@ -71,19 +70,19 @@ export async function list(options = {}) {
 export async function show(options = {}) {
   try {
     const { name, json = false } = options;
-    
+
     if (!name) {
       throw new Error('Adapter name is required. Usage: ztf adapter show <name>');
     }
-    
+
     const adapterInfo = getAdapterInfo(name);
     if (!adapterInfo) {
       throw new Error(`Adapter '${name}' not found`);
     }
-    
+
     const adapter = getAdapter(name);
     const lossProfile = getLossProfile(adapterInfo);
-    
+
     if (json) {
       const detailedInfo = {
         ...adapterInfo,
@@ -96,10 +95,10 @@ export async function show(options = {}) {
         },
         metadata: adapter?.metadata || {},
       };
-      console.log(JSON.stringify(detailedInfo, null, 2));
+      console.log(JSON.stringify(detailedInfo, undefined, 2));
       return;
     }
-    
+
     console.log(`📋 Adapter: ${adapterInfo.name}`);
     console.log(`  Version: ${adapterInfo.version}`);
     console.log(`  Loss Profile: ${lossProfile}`);
@@ -107,9 +106,9 @@ export async function show(options = {}) {
     console.log(`  AI-powered: ${adapterInfo.isAI ? '✅' : '❌'}`);
     console.log(`  Parse: ${adapterInfo.hasParse ? '✅' : '❌'}`);
     console.log(`  Format: ${adapterInfo.hasFormat ? '✅' : '❌'}`);
-    
+
     if (adapter?.metadata) {
-      console.log(`  Metadata: ${JSON.stringify(adapter.metadata, null, 4)}`);
+      console.log(`  Metadata: ${JSON.stringify(adapter.metadata, undefined, 4)}`);
     }
   } catch (error) {
     console.error(`❌ Show failed: ${error.message}`);
@@ -126,23 +125,23 @@ export async function show(options = {}) {
 export async function test(options = {}) {
   try {
     const { name, type = 'all' } = options;
-    
+
     if (!name) {
       throw new Error('Adapter name is required. Usage: ztf adapter test <name>');
     }
-    
+
     const adapter = getAdapter(name);
     if (!adapter) {
       throw new Error(`Adapter '${name}' not found`);
     }
-    
+
     console.log(`🧪 Running ${type} tests for adapter: ${name}`);
-    
+
     const testTypes = type === 'all' ? ['round-trip', 'golden', 'fuzz'] : [type];
-    
+
     for (const testType of testTypes) {
       console.log(`\n  Running ${testType} test...`);
-      
+
       try {
         await runAdapterTest(name, adapter, testType);
         console.log(`  ✅ ${testType} test passed`);
@@ -153,7 +152,7 @@ export async function test(options = {}) {
         }
       }
     }
-    
+
     console.log(`\n🎉 All tests completed for adapter: ${name}`);
   } catch (error) {
     console.error(`❌ Test failed: ${error.message}`);
@@ -171,28 +170,28 @@ export async function test(options = {}) {
 export async function scaffold(options = {}) {
   try {
     const { name, pack = 'custom', out = './adapters' } = options;
-    
+
     if (!name) {
       throw new Error('Adapter name is required. Usage: ztf adapter scaffold <name>');
     }
-    
+
     console.log(`🏗️  Scaffolding adapter: ${name}`);
     console.log(`  Pack: ${pack}`);
     console.log(`  Output: ${out}`);
-    
+
     // Create output directory if it doesn't exist
     await mkdir(out, { recursive: true });
-    
+
     // Generate adapter template
     const adapterTemplate = generateAdapterTemplate(name, pack);
     const adapterPath = join(out, `${name}.mjs`);
     await writeFile(adapterPath, adapterTemplate);
-    
+
     // Generate test template
     const testTemplate = generateTestTemplate(name);
     const testPath = join(out, `${name}.test.mjs`);
     await writeFile(testPath, testTemplate);
-    
+
     // Generate pack manifest if needed
     const packPath = join(out, `${pack}.mjs`);
     try {
@@ -203,7 +202,7 @@ export async function scaffold(options = {}) {
       await writeFile(packPath, packTemplate);
       console.log(`  📝 Created pack manifest: ${packPath}`);
     }
-    
+
     console.log(`  ✅ Adapter scaffolded successfully!`);
     console.log(`  📁 Files created:`);
     console.log(`    - ${adapterPath}`);
@@ -212,7 +211,6 @@ export async function scaffold(options = {}) {
     console.log(`    1. Implement the parse() and format() methods`);
     console.log(`    2. Run tests: pnpm test ${name}.test.mjs`);
     console.log(`    3. Register the adapter in your pack manifest`);
-    
   } catch (error) {
     console.error(`❌ Scaffold failed: ${error.message}`);
     throw error;
@@ -229,13 +227,13 @@ function getLossProfile(adapterInfo) {
   if (adapterInfo.isAI) {
     return 'enriched';
   }
-  
+
   // Most data formats are lossless, some specialized formats might be lossy
   const lossyFormats = ['jpeg', 'mp3', 'mp4', 'webp'];
   if (lossyFormats.some(format => adapterInfo.name.includes(format))) {
     return 'lossy';
   }
-  
+
   return 'lossless';
 }
 
@@ -274,14 +272,14 @@ async function runRoundTripTest(name, adapter) {
   if (typeof adapter.parse !== 'function' || typeof adapter.format !== 'function') {
     throw new TypeError('Round-trip test requires both parse and format capabilities');
   }
-  
+
   // Simple round-trip test with sample data
   const sampleData = { test: 'data', number: 42, array: [1, 2, 3] };
-  
+
   try {
     const formatted = await adapter.format(sampleData);
     const parsed = await adapter.parse(formatted.data);
-    
+
     // Basic comparison (in real implementation, would use deep equality)
     if (JSON.stringify(parsed.data) !== JSON.stringify(sampleData)) {
       throw new Error('Round-trip test failed: data mismatch');
@@ -323,7 +321,7 @@ function generateAdapterTemplate(name, pack) {
   // Convert hyphenated names to camelCase for variable names
   const camelName = name.replace(/-([a-z])/g, (match, letter) => letter.toUpperCase());
   const adapterVarName = `${camelName}Adapter`;
-  
+
   return `/**
  * ${name} adapter for parsing and formatting ${name} data
  * @fileoverview Generated adapter template
@@ -397,7 +395,7 @@ function generateTestTemplate(name) {
   // Convert hyphenated names to camelCase for variable names
   const camelName = name.replace(/-([a-z])/g, (match, letter) => letter.toUpperCase());
   const adapterVarName = `${camelName}Adapter`;
-  
+
   return `/**
  * Tests for ${name} adapter
  * @fileoverview Generated test template
@@ -438,7 +436,7 @@ describe('${name} adapter', () => {
  */
 function generatePackTemplate(packName, adapters) {
   const adapterList = adapters.map(name => `'${name}'`).join(', ');
-  
+
   return `/**
  * ${packName} pack - Collection of format adapters
  * @fileoverview Generated pack template
@@ -447,11 +445,13 @@ function generatePackTemplate(packName, adapters) {
 import { createPackManifest, registerPack } from '../core/index.mjs';
 
 // Import adapters
-${adapters.map(name => {
-  const camelName = name.replace(/-([a-z])/g, (match, letter) => letter.toUpperCase());
-  const adapterVarName = `${camelName}Adapter`;
-  return `import { ${adapterVarName} } from './${name}.mjs';`;
-}).join('\n')}
+${adapters
+  .map(name => {
+    const camelName = name.replace(/-([a-z])/g, (match, letter) => letter.toUpperCase());
+    const adapterVarName = `${camelName}Adapter`;
+    return `import { ${adapterVarName} } from './${name}.mjs';`;
+  })
+  .join('\n')}
 
 // Create pack manifest
 const packManifest = createPackManifest(
@@ -466,21 +466,25 @@ const packManifest = createPackManifest(
 
 // Register all adapters
 const adapters = {
-${adapters.map(name => {
-  const camelName = name.replace(/-([a-z])/g, (match, letter) => letter.toUpperCase());
-  const adapterVarName = `${camelName}Adapter`;
-  return `  ${name}: ${adapterVarName},`;
-}).join('\n')}
+${adapters
+  .map(name => {
+    const camelName = name.replace(/-([a-z])/g, (match, letter) => letter.toUpperCase());
+    const adapterVarName = `${camelName}Adapter`;
+    return `  ${name}: ${adapterVarName},`;
+  })
+  .join('\n')}
 };
 
 registerPack(packManifest, adapters);
 
 export {
-${adapters.map(name => {
-  const camelName = name.replace(/-([a-z])/g, (match, letter) => letter.toUpperCase());
-  const adapterVarName = `${camelName}Adapter`;
-  return `  ${adapterVarName},`;
-}).join('\n')}
+${adapters
+  .map(name => {
+    const camelName = name.replace(/-([a-z])/g, (match, letter) => letter.toUpperCase());
+    const adapterVarName = `${camelName}Adapter`;
+    return `  ${adapterVarName},`;
+  })
+  .join('\n')}
 };
 `;
 }

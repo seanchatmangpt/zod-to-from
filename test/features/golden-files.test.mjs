@@ -7,7 +7,7 @@ import { readFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { beforeEach, describe, expect, it } from 'vitest';
 import { z } from 'zod';
-import { convert, formatTo, parseFrom } from '../../src/core/main.mjs';
+import { convert, formatTo, parseFrom } from '../setup.mjs';
 
 describe('Golden Files Testing', () => {
   const SimpleSchema = z.object({
@@ -40,23 +40,27 @@ describe('Golden Files Testing', () => {
   describe('Simple Data Golden Files', () => {
     it('should parse simple JSON golden file', async () => {
       const goldenFile = readFileSync(join(fixturesDir, 'simple.json'), 'utf8');
-      const result = await parseFrom(SimpleSchema, 'json', goldenFile);
+      const result = await parseFrom(z.array(SimpleSchema), 'json', goldenFile);
 
-      expect(result).toEqual({
-        name: 'John Doe',
-        age: 30,
-        active: true,
-      });
+      expect(result).toEqual([
+        {
+          name: 'John Doe',
+          age: 30,
+          active: true,
+        },
+      ]);
     });
 
     it('should format simple data to match golden JSON', async () => {
-      const data = {
-        name: 'John Doe',
-        age: 30,
-        active: true,
-      };
+      const data = [
+        {
+          name: 'John Doe',
+          age: 30,
+          active: true,
+        },
+      ];
 
-      const result = await formatTo(SimpleSchema, 'json', data, { deterministic: true });
+      const result = await formatTo(z.array(SimpleSchema), 'json', data, { deterministic: true });
       const goldenFile = readFileSync(join(fixturesDir, 'simple.json'), 'utf8');
 
       // Parse both to compare structure (ignoring whitespace differences)
@@ -68,23 +72,27 @@ describe('Golden Files Testing', () => {
 
     it('should parse simple CSV golden file', async () => {
       const goldenFile = readFileSync(join(fixturesDir, 'simple.csv'), 'utf8');
-      const result = await parseFrom(SimpleSchema, 'csv', goldenFile);
+      const result = await parseFrom(z.array(SimpleSchema), 'csv', goldenFile);
 
-      expect(result).toEqual({
-        name: 'John Doe',
-        age: 30,
-        active: true,
-      });
+      expect(result).toEqual([
+        {
+          name: 'John Doe',
+          age: 30,
+          active: true,
+        },
+      ]);
     });
 
     it('should format simple data to match golden CSV', async () => {
-      const data = {
-        name: 'John Doe',
-        age: 30,
-        active: true,
-      };
+      const data = [
+        {
+          name: 'John Doe',
+          age: 30,
+          active: true,
+        },
+      ];
 
-      const result = await formatTo(SimpleSchema, 'csv', data);
+      const result = await formatTo(z.array(SimpleSchema), 'csv', data);
       const goldenFile = readFileSync(join(fixturesDir, 'simple.csv'), 'utf8');
 
       expect(result.trim()).toBe(goldenFile.trim());
@@ -92,23 +100,27 @@ describe('Golden Files Testing', () => {
 
     it('should parse simple NDJSON golden file', async () => {
       const goldenFile = readFileSync(join(fixturesDir, 'simple.ndjson'), 'utf8');
-      const result = await parseFrom(SimpleSchema, 'ndjson', goldenFile);
+      const result = await parseFrom(z.array(SimpleSchema), 'ndjson', goldenFile);
 
-      expect(result).toEqual({
-        name: 'John Doe',
-        age: 30,
-        active: true,
-      });
+      expect(result).toEqual([
+        {
+          name: 'John Doe',
+          age: 30,
+          active: true,
+        },
+      ]);
     });
 
     it('should format simple data to match golden NDJSON', async () => {
-      const data = {
-        name: 'John Doe',
-        age: 30,
-        active: true,
-      };
+      const data = [
+        {
+          name: 'John Doe',
+          age: 30,
+          active: true,
+        },
+      ];
 
-      const result = await formatTo(SimpleSchema, 'ndjson', data);
+      const result = await formatTo(z.array(SimpleSchema), 'ndjson', data);
       const goldenFile = readFileSync(join(fixturesDir, 'simple.ndjson'), 'utf8');
 
       expect(result.trim()).toBe(goldenFile.trim());
@@ -125,10 +137,6 @@ describe('Golden Files Testing', () => {
         metadata: {
           tags: ['important', 'test'],
           score: 90,
-          nested: {
-            value: 'test-value',
-            optional: 'present',
-          },
         },
         items: [
           {
@@ -151,10 +159,6 @@ describe('Golden Files Testing', () => {
         metadata: {
           tags: ['important', 'test'],
           score: 90,
-          nested: {
-            value: 'test-value',
-            optional: 'present',
-          },
         },
         items: [
           {
@@ -182,23 +186,31 @@ describe('Golden Files Testing', () => {
 
     it('should parse complex CSV golden file', async () => {
       const goldenFile = readFileSync(join(fixturesDir, 'complex.csv'), 'utf8');
-      const result = await parseFrom(ComplexSchema, 'csv', goldenFile);
-
-      expect(result).toEqual({
-        id: 1,
-        name: 'Item 1',
-        active: true,
+      const ItemSchema = z.object({
+        id: z.number(),
+        name: z.string(),
+        active: z.boolean(),
       });
+      const result = await parseFrom(z.array(ItemSchema), 'csv', goldenFile);
+
+      expect(result).toEqual([
+        { id: 1, name: 'Item 1', active: true },
+        { id: 2, name: 'Item 2', active: false },
+      ]);
     });
 
     it('should format complex data to match golden CSV', async () => {
-      const data = {
-        id: 1,
-        name: 'Item 1',
-        active: true,
-      };
+      const data = [
+        { id: 1, name: 'Item 1', active: true },
+        { id: 2, name: 'Item 2', active: false },
+      ];
+      const ItemSchema = z.object({
+        id: z.number(),
+        name: z.string(),
+        active: z.boolean(),
+      });
 
-      const result = await formatTo(ComplexSchema, 'csv', data);
+      const result = await formatTo(z.array(ItemSchema), 'csv', data);
       const goldenFile = readFileSync(join(fixturesDir, 'complex.csv'), 'utf8');
 
       expect(result.trim()).toBe(goldenFile.trim());
@@ -206,23 +218,31 @@ describe('Golden Files Testing', () => {
 
     it('should parse complex NDJSON golden file', async () => {
       const goldenFile = readFileSync(join(fixturesDir, 'complex.ndjson'), 'utf8');
-      const result = await parseFrom(ComplexSchema, 'ndjson', goldenFile);
-
-      expect(result).toEqual({
-        id: 1,
-        name: 'Item 1',
-        active: true,
+      const ItemSchema = z.object({
+        id: z.number(),
+        name: z.string(),
+        active: z.boolean(),
       });
+      const result = await parseFrom(z.array(ItemSchema), 'ndjson', goldenFile);
+
+      expect(result).toEqual([
+        { id: 1, name: 'Item 1', active: true },
+        { id: 2, name: 'Item 2', active: false },
+      ]);
     });
 
     it('should format complex data to match golden NDJSON', async () => {
-      const data = {
-        id: 1,
-        name: 'Item 1',
-        active: true,
-      };
+      const data = [
+        { id: 1, name: 'Item 1', active: true },
+        { id: 2, name: 'Item 2', active: false },
+      ];
+      const ItemSchema = z.object({
+        id: z.number(),
+        name: z.string(),
+        active: z.boolean(),
+      });
 
-      const result = await formatTo(ComplexSchema, 'ndjson', data);
+      const result = await formatTo(z.array(ItemSchema), 'ndjson', data);
       const goldenFile = readFileSync(join(fixturesDir, 'complex.ndjson'), 'utf8');
 
       expect(result.trim()).toBe(goldenFile.trim());
@@ -234,7 +254,7 @@ describe('Golden Files Testing', () => {
       const jsonGolden = readFileSync(join(fixturesDir, 'simple.json'), 'utf8');
       const csvGolden = readFileSync(join(fixturesDir, 'simple.csv'), 'utf8');
 
-      const result = await convert(SimpleSchema, { from: 'json', to: 'csv' }, jsonGolden);
+      const result = await convert(z.array(SimpleSchema), { from: 'json', to: 'csv' }, jsonGolden);
 
       expect(result.trim()).toBe(csvGolden.trim());
     });
@@ -243,7 +263,7 @@ describe('Golden Files Testing', () => {
       const csvGolden = readFileSync(join(fixturesDir, 'simple.csv'), 'utf8');
       const jsonGolden = readFileSync(join(fixturesDir, 'simple.json'), 'utf8');
 
-      const result = await convert(SimpleSchema, { from: 'csv', to: 'json' }, csvGolden);
+      const result = await convert(z.array(SimpleSchema), { from: 'csv', to: 'json' }, csvGolden);
 
       // Parse both to compare structure (ignoring whitespace differences)
       const parsedResult = JSON.parse(result);
@@ -256,7 +276,11 @@ describe('Golden Files Testing', () => {
       const jsonGolden = readFileSync(join(fixturesDir, 'simple.json'), 'utf8');
       const ndjsonGolden = readFileSync(join(fixturesDir, 'simple.ndjson'), 'utf8');
 
-      const result = await convert(SimpleSchema, { from: 'json', to: 'ndjson' }, jsonGolden);
+      const result = await convert(
+        z.array(SimpleSchema),
+        { from: 'json', to: 'ndjson' },
+        jsonGolden
+      );
 
       expect(result.trim()).toBe(ndjsonGolden.trim());
     });
@@ -265,7 +289,11 @@ describe('Golden Files Testing', () => {
       const ndjsonGolden = readFileSync(join(fixturesDir, 'simple.ndjson'), 'utf8');
       const jsonGolden = readFileSync(join(fixturesDir, 'simple.json'), 'utf8');
 
-      const result = await convert(SimpleSchema, { from: 'ndjson', to: 'json' }, ndjsonGolden);
+      const result = await convert(
+        z.array(SimpleSchema),
+        { from: 'ndjson', to: 'json' },
+        ndjsonGolden
+      );
 
       // Parse both to compare structure (ignoring whitespace differences)
       const parsedResult = JSON.parse(result);
@@ -278,7 +306,7 @@ describe('Golden Files Testing', () => {
       const csvGolden = readFileSync(join(fixturesDir, 'simple.csv'), 'utf8');
       const ndjsonGolden = readFileSync(join(fixturesDir, 'simple.ndjson'), 'utf8');
 
-      const result = await convert(SimpleSchema, { from: 'csv', to: 'ndjson' }, csvGolden);
+      const result = await convert(z.array(SimpleSchema), { from: 'csv', to: 'ndjson' }, csvGolden);
 
       expect(result.trim()).toBe(ndjsonGolden.trim());
     });
@@ -287,7 +315,11 @@ describe('Golden Files Testing', () => {
       const ndjsonGolden = readFileSync(join(fixturesDir, 'simple.ndjson'), 'utf8');
       const csvGolden = readFileSync(join(fixturesDir, 'simple.csv'), 'utf8');
 
-      const result = await convert(SimpleSchema, { from: 'ndjson', to: 'csv' }, ndjsonGolden);
+      const result = await convert(
+        z.array(SimpleSchema),
+        { from: 'ndjson', to: 'csv' },
+        ndjsonGolden
+      );
 
       expect(result.trim()).toBe(csvGolden.trim());
     });
@@ -298,8 +330,10 @@ describe('Golden Files Testing', () => {
       const jsonGolden = readFileSync(join(fixturesDir, 'simple.json'), 'utf8');
 
       // Parse then format
-      const parsed = await parseFrom(SimpleSchema, 'json', jsonGolden);
-      const formatted = await formatTo(SimpleSchema, 'json', parsed, { deterministic: true });
+      const parsed = await parseFrom(z.array(SimpleSchema), 'json', jsonGolden);
+      const formatted = await formatTo(z.array(SimpleSchema), 'json', parsed, {
+        deterministic: true,
+      });
 
       // Parse the formatted result
       const roundTripParsed = JSON.parse(formatted);
@@ -312,12 +346,12 @@ describe('Golden Files Testing', () => {
       const csvGolden = readFileSync(join(fixturesDir, 'simple.csv'), 'utf8');
 
       // Parse then format
-      const parsed = await parseFrom(SimpleSchema, 'csv', csvGolden);
-      const formatted = await formatTo(SimpleSchema, 'csv', parsed);
+      const parsed = await parseFrom(z.array(SimpleSchema), 'csv', csvGolden);
+      const formatted = await formatTo(z.array(SimpleSchema), 'csv', parsed);
 
       // Parse the formatted result
-      const roundTripParsed = await parseFrom(SimpleSchema, 'csv', formatted);
-      const originalParsed = await parseFrom(SimpleSchema, 'csv', csvGolden);
+      const roundTripParsed = await parseFrom(z.array(SimpleSchema), 'csv', formatted);
+      const originalParsed = await parseFrom(z.array(SimpleSchema), 'csv', csvGolden);
 
       expect(roundTripParsed).toEqual(originalParsed);
     });
@@ -326,12 +360,12 @@ describe('Golden Files Testing', () => {
       const ndjsonGolden = readFileSync(join(fixturesDir, 'simple.ndjson'), 'utf8');
 
       // Parse then format
-      const parsed = await parseFrom(SimpleSchema, 'ndjson', ndjsonGolden);
-      const formatted = await formatTo(SimpleSchema, 'ndjson', parsed);
+      const parsed = await parseFrom(z.array(SimpleSchema), 'ndjson', ndjsonGolden);
+      const formatted = await formatTo(z.array(SimpleSchema), 'ndjson', parsed);
 
       // Parse the formatted result
-      const roundTripParsed = await parseFrom(SimpleSchema, 'ndjson', formatted);
-      const originalParsed = await parseFrom(SimpleSchema, 'ndjson', ndjsonGolden);
+      const roundTripParsed = await parseFrom(z.array(SimpleSchema), 'ndjson', formatted);
+      const originalParsed = await parseFrom(z.array(SimpleSchema), 'ndjson', ndjsonGolden);
 
       expect(roundTripParsed).toEqual(originalParsed);
     });
@@ -432,9 +466,9 @@ describe('Golden Files Testing', () => {
       const simpleCsv = readFileSync(join(fixturesDir, 'simple.csv'), 'utf8');
       const simpleNdjson = readFileSync(join(fixturesDir, 'simple.ndjson'), 'utf8');
 
-      const jsonResult = await parseFrom(SimpleSchema, 'json', simpleJson);
-      const csvResult = await parseFrom(SimpleSchema, 'csv', simpleCsv);
-      const ndjsonResult = await parseFrom(SimpleSchema, 'ndjson', simpleNdjson);
+      const jsonResult = await parseFrom(z.array(SimpleSchema), 'json', simpleJson);
+      const csvResult = await parseFrom(z.array(SimpleSchema), 'csv', simpleCsv);
+      const ndjsonResult = await parseFrom(z.array(SimpleSchema), 'ndjson', simpleNdjson);
 
       expect(jsonResult).toEqual(csvResult);
       expect(jsonResult).toEqual(ndjsonResult);

@@ -4,15 +4,15 @@
  */
 
 // Import and register all adapters first
-import './adapters/data.mjs';
-import './adapters/office.mjs';
-import './adapters/graph.mjs';
-import './adapters/devops.mjs';
-import './adapters/templating.mjs';
 import './adapters/ai.mjs';
 import './adapters/communications.mjs';
-import './adapters/media.mjs';
+import './adapters/data.mjs';
+import './adapters/devops.mjs';
 import './adapters/geo.mjs';
+import './adapters/graph.mjs';
+import './adapters/media.mjs';
+import './adapters/office.mjs';
+import './adapters/templating.mjs';
 
 // Export core functionality
 export * from './core/index.mjs';

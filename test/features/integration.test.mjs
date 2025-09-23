@@ -5,8 +5,7 @@
 
 import { beforeEach, describe, expect, it } from 'vitest';
 import { z } from 'zod';
-import { convert, formatTo, parseFrom } from '../../src/core/main.mjs';
-import { registerAdapter } from '../../src/core/registry.mjs';
+import { convert, formatTo, parseFrom, registerAdapter } from '../setup.mjs';
 
 describe('Integration Tests', () => {
   const UserSchema = z.object({

@@ -3,11 +3,15 @@
     "activeCommit": 0,
     "commits": [
         {
-            "activePatchIndex": 0,
+            "activePatchIndex": 1,
             "patches": [
                 {
                     "date": 1758645130114,
                     "content": "Index: \n===================================================================\n--- \n+++ \n"
+                },
+                {
+                    "date": 1758645941396,
+                    "content": "Index: \n===================================================================\n--- \n+++ \n@@ -4,9 +4,9 @@\n  */\n \n import { beforeEach, describe, expect, it } from 'vitest';\n import { z } from 'zod';\n-import { convert, formatTo, parseFrom } from '../../src/core/main.mjs';\n+import { convert, formatTo, parseFrom } from '../setup.mjs';\n \n describe('CSV Adapter', () => {\n   const SimpleCSVSchema = z.object({\n     name: z.string(),\n@@ -65,10 +65,21 @@\n       const csvInput = `name,age,active\n John,30,\n Jane,,false`;\n \n-      const result = await parseFrom(ArrayCSVSchema, 'csv', csvInput);\n+      // Use a schema that allows empty strings for this test\n+      const EmptyValuesSchema = z.object({\n+        items: z.array(\n+          z.object({\n+            name: z.string(),\n+            age: z.union([z.number(), z.string()]),\n+            active: z.union([z.boolean(), z.string()]),\n+          })\n+        ),\n+      });\n \n+      const result = await parseFrom(EmptyValuesSchema, 'csv', csvInput);\n+\n       expect(result.items).toHaveLength(2);\n       expect(result.items[0].active).toBe('');\n       expect(result.items[1].age).toBe('');\n     });\n"
                 }
             ],
             "date": 1758645130114,

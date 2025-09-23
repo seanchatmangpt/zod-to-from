@@ -3,10 +3,10 @@
  * Tests CLI commands with real file I/O and schema validation
  */
 
-import { describe, it, expect, beforeAll, afterAll } from 'vitest';
 import { runLocalCitty } from 'citty-test-utils';
-import { readFile, writeFile, unlink } from 'node:fs/promises';
+import { unlink, writeFile } from 'node:fs/promises';
 import { resolve } from 'node:path';
+import { afterAll, beforeAll, describe, expect, it } from 'vitest';
 
 describe('CLI Commands Integration', () => {
   const cliPath = resolve(process.cwd(), 'src/cli/cli.mjs');
@@ -33,21 +33,24 @@ describe('CLI Commands Integration', () => {
 
   describe('Artifact Commands', () => {
     it('should parse JSON config successfully', async () => {
-      const result = await runLocalCitty([
-        'artifact',
-        'parse',
-        '--schema',
-        './schemas/config.mjs#Config',
-        '--from',
-        'json',
-        '--in',
-        resolve(testDir, 'simple-config.json'),
-        '--out',
-        resolve(outputDir, 'test-output.json'),
-      ], {
-        cwd: process.cwd(),
-        cliPath: cliPath,
-      });
+      const result = await runLocalCitty(
+        [
+          'artifact',
+          'parse',
+          '--schema',
+          './schemas/config.mjs#Config',
+          '--from',
+          'json',
+          '--in',
+          resolve(testDir, 'simple-config.json'),
+          '--out',
+          resolve(outputDir, 'test-output.json'),
+        ],
+        {
+          cwd: process.cwd(),
+          cliPath: cliPath,
+        }
+      );
 
       result.expectSuccess();
       result.expectOutput('✅ Successfully parsed');
@@ -79,40 +82,46 @@ describe('CLI Commands Integration', () => {
     });
 
     it('should fail with invalid data', async () => {
-      const result = await runLocalCitty([
-        'artifact',
-        'parse',
-        '--schema',
-        './schemas/config.mjs#Config',
-        '--from',
-        'json',
-        '--in',
-        resolve(testDir, 'invalid-config.json'),
-        '--out',
-        resolve(outputDir, 'test-output.json'),
-      ], {
-        cwd: process.cwd(),
-        cliPath: cliPath,
-      });
+      const result = await runLocalCitty(
+        [
+          'artifact',
+          'parse',
+          '--schema',
+          './schemas/config.mjs#Config',
+          '--from',
+          'json',
+          '--in',
+          resolve(testDir, 'invalid-config.json'),
+          '--out',
+          resolve(outputDir, 'test-output.json'),
+        ],
+        {
+          cwd: process.cwd(),
+          cliPath: cliPath,
+        }
+      );
 
       result.expectFailure();
       result.expectStderr('❌ Parse failed');
     });
 
     it('should fail without required schema', async () => {
-      const result = await runLocalCitty([
-        'artifact',
-        'parse',
-        '--from',
-        'json',
-        '--in',
-        resolve(testDir, 'simple-config.json'),
-        '--out',
-        resolve(outputDir, 'test-output.json'),
-      ], {
-        cwd: process.cwd(),
-        cliPath: cliPath,
-      });
+      const result = await runLocalCitty(
+        [
+          'artifact',
+          'parse',
+          '--from',
+          'json',
+          '--in',
+          resolve(testDir, 'simple-config.json'),
+          '--out',
+          resolve(outputDir, 'test-output.json'),
+        ],
+        {
+          cwd: process.cwd(),
+          cliPath: cliPath,
+        }
+      );
 
       result.expectFailure();
       result.expectStderr('❌ Error: --schema is required');

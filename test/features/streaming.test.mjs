@@ -5,8 +5,7 @@
 
 import { beforeEach, describe, expect, it } from 'vitest';
 import { z } from 'zod';
-import { convert, formatTo, parseFrom } from '../../src/core/main.mjs';
-import { adapterSupports } from '../../src/core/registry.mjs';
+import { adapterSupports, convert, formatTo, parseFrom } from '../setup.mjs';
 
 describe('Streaming Features', () => {
   const StreamingSchema = z.object({

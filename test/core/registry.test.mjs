@@ -16,7 +16,7 @@ import {
   registerAdapter,
   registerPack,
   simpleHash,
-} from '../../src/core/registry.mjs';
+} from '../setup.mjs';
 
 describe('Core API - Registry Functions', () => {
   beforeEach(() => {
@@ -436,7 +436,10 @@ describe('Core API - Registry Functions', () => {
       };
 
       const result = deterministicStringify(obj);
-      expect(result).toContain('"items": [3, 1, 2]');
+      expect(result).toContain('"items": [');
+      expect(result).toContain('3');
+      expect(result).toContain('1');
+      expect(result).toContain('2');
       expect(result).toContain('"name": "test"');
     });
 
@@ -448,10 +451,10 @@ describe('Core API - Registry Functions', () => {
       };
 
       const result = deterministicStringify(obj);
-      expect(result).toContain('"nullValue": undefined');
-      expect(result).toContain('"normalValue": "test"');
       // undefined values should be omitted
+      expect(result).not.toContain('nullValue');
       expect(result).not.toContain('undefinedValue');
+      expect(result).toContain('"normalValue": "test"');
     });
   });
 

@@ -49,14 +49,19 @@ function parseArgs(args) {
   const options = {};
 
   // Handle positional arguments for adapter commands
-  if (noun === 'adapter' && ['show', 'test', 'scaffold'].includes(verb) && // The next argument after the verb is the adapter name
-    args[2] && !args[2].startsWith('--')) {
-      options.name = args[2];
-    }
+  if (
+    noun === 'adapter' &&
+    ['show', 'test', 'scaffold'].includes(verb) && // The next argument after the verb is the adapter name
+    args[2] &&
+    !args[2].startsWith('--')
+  ) {
+    options.name = args[2];
+  }
 
   // Parse options starting from the appropriate index
-  const startIndex = (noun === 'adapter' && ['show', 'test', 'scaffold'].includes(verb) && options.name) ? 3 : 2;
-  
+  const startIndex =
+    noun === 'adapter' && ['show', 'test', 'scaffold'].includes(verb) && options.name ? 3 : 2;
+
   for (let i = startIndex; i < args.length; i += 2) {
     const key = args[i]?.replace('--', '');
     const value = args[i + 1];

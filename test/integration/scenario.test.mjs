@@ -3,9 +3,8 @@
  * Tests multi-step CLI workflows using citty-test-utils scenarios
  */
 
-import { describe, it, expect } from 'vitest';
-import { scenario, scenarios } from 'citty-test-utils';
 import { resolve } from 'node:path';
+import { describe, expect, it } from 'vitest';
 
 describe('CLI Scenario Integration', () => {
   const testDir = resolve(process.cwd(), 'test/fixtures');

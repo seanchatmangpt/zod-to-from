@@ -3,27 +3,36 @@ import { defineConfig } from 'vitest/config';
 export default defineConfig({
   test: {
     // Test file patterns
-    include: [
-      'test/**/*.test.mjs',
-      'test/**/*.spec.mjs',
-    ],
-    
+    include: ['test/**/*.test.mjs', 'test/**/*.spec.mjs'],
+
     // Test environment
     environment: 'node',
-    
+
     // Test timeout
     testTimeout: 30_000,
-    
+
+    // Concurrency optimization
+    pool: 'threads',
+    poolOptions: {
+      threads: {
+        singleThread: false,
+        maxThreads: 8,
+        minThreads: 2,
+      },
+    },
+    maxConcurrency: 8,
+
+    // Test execution optimization
+    isolate: true,
+    passWithNoTests: true,
+    bail: 0, // Don't bail on first failure
+
     // Coverage configuration
     coverage: {
       provider: 'v8',
       reporter: ['text', 'json', 'html'],
       include: ['src/**/*.mjs'],
-      exclude: [
-        'src/**/*.test.mjs',
-        'src/**/*.spec.mjs',
-        'test/**/*',
-      ],
+      exclude: ['src/**/*.test.mjs', 'src/**/*.spec.mjs', 'test/**/*'],
       thresholds: {
         global: {
           branches: 80,
@@ -32,17 +41,25 @@ export default defineConfig({
           statements: 80,
         },
       },
+      // Parallel coverage collection
+      all: true,
+      parallel: true,
     },
-    
+
     // Test organization
     testNamePattern: undefined,
-    
-    // Reporter configuration
-    reporter: ['verbose'],
-    
+
+    // Reporter configuration - use faster reporters for parallel runs
+    reporter: ['verbose', 'json'],
+
     // Output directory for test results
     outputFile: {
       json: './test-results/results.json',
+    },
+
+    // Performance optimizations
+    deps: {
+      inline: ['@vitest/utils'],
     },
   },
 });

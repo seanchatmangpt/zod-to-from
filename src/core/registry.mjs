@@ -181,16 +181,26 @@ export function registerPack(packManifest, adaptersMap) {
  * @returns {Provenance} Provenance metadata
  */
 export function createProvenance(adapter, sourceFormat, targetFormat, options = {}) {
-  return {
+  const provenance = {
     timestamp: new Date().toISOString(),
     sourceFormat,
     targetFormat,
     adapter,
-    aiModel: options.aiModel,
-    promptHash: options.promptHash,
     version: ZTF_VERSION,
-    schemaHash: options.schemaHash,
   };
+
+  // Only include optional properties if they are defined
+  if (options.aiModel !== undefined) {
+    provenance.aiModel = options.aiModel;
+  }
+  if (options.promptHash !== undefined) {
+    provenance.promptHash = options.promptHash;
+  }
+  if (options.schemaHash !== undefined) {
+    provenance.schemaHash = options.schemaHash;
+  }
+
+  return provenance;
 }
 
 /**

@@ -3,11 +3,15 @@
     "activeCommit": 0,
     "commits": [
         {
-            "activePatchIndex": 0,
+            "activePatchIndex": 1,
             "patches": [
                 {
                     "date": 1758645129688,
                     "content": "Index: \n===================================================================\n--- \n+++ \n"
+                },
+                {
+                    "date": 1758647896536,
+                    "content": "Index: \n===================================================================\n--- \n+++ \n@@ -1,1 +1,1 @@\n-{\"name\": \"John Doe\", \"age\": 30, \"active\": true}\n+{\"name\":\"John Doe\",\"age\":30,\"active\":true}\n"
                 }
             ],
             "date": 1758645129688,

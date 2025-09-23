@@ -3,11 +3,15 @@
     "activeCommit": 0,
     "commits": [
         {
-            "activePatchIndex": 0,
+            "activePatchIndex": 1,
             "patches": [
                 {
                     "date": 1758645129728,
                     "content": "Index: \n===================================================================\n--- \n+++ \n"
+                },
+                {
+                    "date": 1758647896694,
+                    "content": "Index: \n===================================================================\n--- \n+++ \n@@ -1,9 +1,7 @@\n-{\n-  \"name\": \"John Doe\",\n-  \"age\": 30,\n-  \"active\": true,\n-  \"metadata\": {\n-    \"tags\": [\"user\", \"active\"],\n-    \"score\": 85.5\n+[\n+  {\n+    \"name\": \"John Doe\",\n+    \"age\": 30,\n+    \"active\": true\n   }\n-}\n+]\n"
                 }
             ],
             "date": 1758645129728,

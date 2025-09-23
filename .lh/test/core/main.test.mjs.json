@@ -3,11 +3,15 @@
     "activeCommit": 0,
     "commits": [
         {
-            "activePatchIndex": 0,
+            "activePatchIndex": 1,
             "patches": [
                 {
                     "date": 1758645130112,
                     "content": "Index: \n===================================================================\n--- \n+++ \n"
+                },
+                {
+                    "date": 1758645941437,
+                    "content": "Index: \n===================================================================\n--- \n+++ \n@@ -4,10 +4,9 @@\n  */\n \n import { afterEach, beforeEach, describe, expect, it } from 'vitest';\n import { z } from 'zod';\n-import { convert, formatTo, parseFrom } from '../../src/core/main.mjs';\n-import { registerAdapter } from '../../src/core/registry.mjs';\n+import { convert, formatTo, parseFrom, registerAdapter } from '../setup.mjs';\n \n describe('Core API - Main Functions', () => {\n   // Test schemas for different data types\n   const SimpleSchema = z.object({\n@@ -113,12 +112,17 @@\n         supportsStreaming: false,\n         isAI: false,\n       });\n \n+      // Use a schema that matches the test data\n+      const TestSchema = z.object({\n+        name: z.string(),\n+      });\n+\n       const input = '{\"name\": \"Test\"}';\n       const customOptions = { custom: 'value', nested: { option: true } };\n \n-      await parseFrom(SimpleSchema, 'test-options', input, { adapter: customOptions });\n+      await parseFrom(TestSchema, 'test-options', input, { adapter: customOptions });\n \n       expect(receivedOptions).toEqual(customOptions);\n     });\n \n@@ -233,12 +237,17 @@\n         supportsStreaming: false,\n         isAI: false,\n       });\n \n+      // Use a schema that matches the test data\n+      const TestSchema = z.object({\n+        name: z.string(),\n+      });\n+\n       const data = { name: 'Test' };\n       const customOptions = { indent: 4, sortKeys: true };\n \n-      await formatTo(SimpleSchema, 'test-format-options', data, { adapter: customOptions });\n+      await formatTo(TestSchema, 'test-format-options', data, { adapter: customOptions });\n \n       expect(receivedOptions).toEqual(customOptions);\n     });\n   });\n@@ -273,11 +282,16 @@\n       );\n     });\n \n     it('should throw error for unknown target format', async () => {\n+      // Use a schema that matches the test data\n+      const TestSchema = z.object({\n+        name: z.string(),\n+      });\n+\n       const input = '{\"name\": \"Test\"}';\n \n-      await expect(convert(SimpleSchema, { from: 'json', to: 'unknown' }, input)).rejects.toThrow(\n+      await expect(convert(TestSchema, { from: 'json', to: 'unknown' }, input)).rejects.toThrow(\n         'No adapter found for format: unknown'\n       );\n     });\n \n"
                 }
             ],
             "date": 1758645130112,

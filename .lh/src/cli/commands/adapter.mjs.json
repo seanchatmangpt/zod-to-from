@@ -3,11 +3,15 @@
     "activeCommit": 0,
     "commits": [
         {
-            "activePatchIndex": 0,
+            "activePatchIndex": 1,
             "patches": [
                 {
                     "date": 1758644495329,
                     "content": "Index: \n===================================================================\n--- \n+++ \n"
+                },
+                {
+                    "date": 1758645706363,
+                    "content": "Index: \n===================================================================\n--- \n+++ \n@@ -2,16 +2,11 @@\n  * Adapter command implementations\n  * @fileoverview Commands for managing and inspecting adapters following noun-verb structure\n  */\n \n-import {\n-  getAdapterInfo,\n-  listAdapters,\n-  listAdaptersWithInfo,\n-  getAdapter,\n-} from '../../core/index.mjs';\n-import { readFile, writeFile, mkdir } from 'node:fs/promises';\n-import { join, dirname } from 'node:path';\n+import { mkdir, readFile, writeFile } from 'node:fs/promises';\n+import { join } from 'node:path';\n+import { getAdapter, getAdapterInfo, listAdaptersWithInfo } from '../../core/index.mjs';\n \n /**\n  * List command - List all available adapters with filtering and output options\n  * @param {Object} options - Command options\n"
                 }
             ],
             "date": 1758644495329,

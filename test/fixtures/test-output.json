@@ -6,8 +6,5 @@
     "url": "postgresql://localhost:5432/testdb",
     "pool": 10
   },
-  "features": [
-    "auth",
-    "logging"
-  ]
+  "features": ["auth", "logging"]
 }
