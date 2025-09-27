@@ -1,6 +1,6 @@
 {
   "name": "zod-to-from",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "A collection of to/from adapters that convert between I/O formats and Zod-validated objects",
   "repository": {
     "type": "git",

@@ -1,4 +1,4 @@
-# Zod-to-From (ZTF) v1.0.0
+# Zod-to-From (ZTF) v1.0.1
 
 > **A comprehensive format conversion library with Zod schema validation**
 
@@ -7,7 +7,7 @@ various data formats while ensuring type safety through Zod schema validation.
 Whether you're working with JSON, YAML, CSV, or specialized formats like GPX,
 KML, or Office documents, ZTF has you covered.
 
-## 🆕 What's New in v1.0.0
+## 🆕 What's New in v1.0.1
 
 - **New `from/to` API** - Clean, intuitive function naming with Zod schema validation
 - **47 Format Adapters** - Comprehensive format support
@@ -44,7 +44,7 @@ yarn add zod-to-from
 
 ## 🎯 Quick Start
 
-### New `from/to` API (v1.0.0)
+### New `from/to` API (v1.0.1)
 
 ```javascript
 import {
