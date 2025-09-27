@@ -1,8 +1,11 @@
 {
   "name": "zod-to-from",
-  "version": "0.0.0",
+  "version": "1.0.0",
   "description": "A collection of to/from adapters that convert between I/O formats and Zod-validated objects",
-  "repository": "unjs/zod-to-from",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/sac/zod-to-from.git"
+  },
   "license": "MIT",
   "sideEffects": false,
   "type": "module",
