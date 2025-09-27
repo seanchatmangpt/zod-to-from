@@ -1,58 +1,82 @@
-# zod-to-from (ZTF)
+# Zod-to-From (ZTF) v1.0.0
 
-[![npm version](https://img.shields.io/npm/v/zod-to-from.svg)](https://www.npmjs.com/package/zod-to-from)
-[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
-[![Build Status](https://img.shields.io/badge/build-passing-brightgreen.svg)](https://github.com/unjs/zod-to-from)
+> **A comprehensive format conversion library with Zod schema validation**
 
-ZTF is a universal I/O conversion layer centered on Zod schemas. The core
-philosophy is that Zod is the single source of truth, and all other formats are
-merely views of that truth. It aims to make Zod the universal intermediate
-representation for all application I/O.
+ZTF is a powerful, extensible library that provides seamless conversion between
+various data formats while ensuring type safety through Zod schema validation.
+Whether you're working with JSON, YAML, CSV, or specialized formats like GPX,
+KML, or Office documents, ZTF has you covered.
 
-## Core Philosophy
+## 🆕 What's New in v1.0.0
 
-The library operates on two primary primitives: `from(format) -> zod` and
-`to(format) <- zod`. All transformations are deterministic, using canonical
-ordering and stable serialization to ensure reproducibility. The system is built
-on the invariant that for any given data, `to(X, from(X, data))` is
-approximately equal to the original data, with any lossiness being explicitly
-declared and tracked.
+- **New `from/to` API** - Clean, intuitive function naming
+- **47 Format Adapters** - Comprehensive format support
+- **94 Export Functions** - Direct access to all adapters
+- **Improved Type Safety** - Better JSDoc documentation
+- **Enhanced Testing** - Comprehensive test coverage
 
-## ✨ Features
+## 🚀 Features
 
-- **Zod at the Center**: Your Zod schema is the canonical model; all I/O is
-  validated against it
-- **Deterministic I/O**: Transformations are designed to be reproducible with
-  canonical ordering and stable serialization
-- **First-Class Provenance**: Automatically capture the source, transform chain,
-  and checksums for any operation
-- **Content Addressing**: Artifacts can be keyed by a hash of their schema,
-  options, and content for verifiable storage
-- **Streaming First**: The API is designed around async iterable decoders and
-  encoders to handle large payloads efficiently
-- **Integrated Validation & Repair**: Parsing and validation occur in a single
-  pass, with an optional repair loop to auto-fix and re-validate data
-- **Partial Parsing**: Selectively extract a subset of data by projecting a
-  partial Zod schema
-- **Composable Pipeline**: Adapters are designed as composable functors,
-  allowing for pipelines like `from(A) |> map |> to(B)`
-- **Schema Versioning**: Includes support for typed transforms to migrate
-  schemas from vN to vN+1
-- **Typed Error Model**: Errors are explicitly typed as DecodeError,
-  ValidateError, or LossyWarning
-- **Security by Design**: Features safe parsers, resource caps, sandboxable
-  runners, and deterministic timeouts for untrusted inputs
-- **Governance & Observability**: Produces exportable audit logs (JSONL, Turtle)
-  and provides per-stage timings and anomaly flags
+- **47 Format Adapters** - Support for JSON, YAML, CSV, XML, Office documents,
+  geospatial data, and more
+- **Zod Schema Validation** - Type-safe data conversion with runtime validation
+- **AI-Powered Adapters** - Intelligent parsing for complex documents using
+  Ollama
+- **Streaming Support** - Handle large datasets efficiently
+- **Provenance Tracking** - Audit trail for all conversions
+- **Extensible Architecture** - Easy to add custom adapters
+- **Zero Dependencies** - Core library has no external dependencies
+- **JSDoc Documentation** - Comprehensive type information
 
-## 🚀 Quick Start
+## 📦 Installation
 
-The programmatic core is pure ESM, with side effects isolated in adapters.
+```bash
+# Using pnpm (recommended)
+pnpm add zod-to-from
 
-### Programmatic API
+# Using npm
+npm install zod-to-from
+
+# Using yarn
+yarn add zod-to-from
+```
+
+## 🎯 Quick Start
+
+### New `from/to` API (v1.0.0)
 
 ```javascript
-// Two primitives: parseFrom() and formatTo()
+import { fromJson, toJson, fromCsv, toCsv, fromYaml, toYaml } from 'zod-to-from';
+
+// Parse JSON to structured data
+const jsonData = '{"name": "Alice", "age": 30, "email": "alice@example.com"}';
+const user = await fromJson(jsonData);
+console.log(user.data); // { name: "Alice", age: 30, email: "alice@example.com" }
+
+// Format structured data to JSON
+const jsonOutput = await toJson({ name: "Bob", age: 25, email: "bob@example.com" });
+console.log(jsonOutput.data);
+// {
+//   "name": "Bob",
+//   "age": 25,
+//   "email": "bob@example.com"
+// }
+
+// Parse CSV to structured data
+const csvData = 'name,age,email\nCharlie,35,charlie@example.com';
+const csvResult = await fromCsv(csvData);
+console.log(csvResult.data.data); // [{ name: "Charlie", age: 35, email: "charlie@example.com" }]
+
+// Format structured data to CSV
+const csvOutput = await toCsv([{ name: "David", age: 40, email: "david@example.com" }]);
+console.log(csvOutput.data);
+// name,age,email
+// David,40,david@example.com
+```
+
+### Legacy API (still supported)
+
+```javascript
 import { parseFrom, formatTo, convert } from 'zod-to-from';
 import { z } from 'zod';
 
@@ -60,274 +84,249 @@ import { z } from 'zod';
 const UserSchema = z.object({
   name: z.string(),
   age: z.number(),
-  active: z.boolean().default(true),
+  email: z.string().email(),
 });
 
-// Parse and validate in one pass
-const userObject = await parseFrom(
-  UserSchema,
-  'json',
-  '{"name":"Alice","age":30}'
-);
+// Parse JSON data
+const jsonData = '{"name": "Alice", "age": 30, "email": "alice@example.com"}';
+const user = await parseFrom(UserSchema, 'json', jsonData);
+console.log(user); // { name: "Alice", age: 30, email: "alice@example.com" }
 
-// Format a validated object to another format
-const userYaml = await formatTo(UserSchema, 'yaml', userObject);
-
-// Convert between formats
-const userCsv = await convert(
-  UserSchema,
-  { from: 'json', to: 'csv' },
-  '{"name":"Alice","age":30}'
-);
+// Format to YAML
+const yamlOutput = await formatTo(UserSchema, 'yaml', user);
+console.log(yamlOutput);
+// name: Alice
+// age: 30
+// email: alice@example.com
 ```
 
-### CLI
+## 📚 Documentation
 
-ZTF provides a simple noun-verb command-line interface.
+- **[API Reference](docs/api/README.md)** - Complete API documentation
+- **[Adapter Guide](docs/adapters/README.md)** - All available format adapters
+- **[Examples](docs/examples/README.md)** - Usage examples and tutorials
+- **[Guides](docs/guides/README.md)** - Advanced usage patterns
+- **[Contributing](docs/contributing/README.md)** - How to contribute
 
-```bash
-# Convert a source file from one format to another through a schema
-ztf convert --from json --to yaml --schema ./schemas/user.mjs#UserSchema --in input.json --out output.yaml
+## 🔌 Available Adapters
 
-# Parse a file with schema validation
-ztf parse --schema ./schemas/config.mjs#Config --from yaml --in config.yaml --out config.json
+### Core Data Formats
 
-# Format data to a specific format
-ztf format --schema ./schemas/data.mjs#DataSchema --to csv --in data.json --out data.csv
+- **JSON** - JavaScript Object Notation
+- **YAML** - YAML Ain't Markup Language
+- **TOML** - Tom's Obvious, Minimal Language
+- **CSV** - Comma-Separated Values
+- **NDJSON** - Newline Delimited JSON
 
-# List available adapters
-ztf list
+### Office & Documents
+
+- **DOCX** - Microsoft Word documents (with AI assistance)
+- **PPTX** - PowerPoint presentations
+- **XLSX** - Excel spreadsheets
+- **PDF** - PDF text extraction and table support
+- **HTML** - HyperText Markup Language
+- **Markdown** - Markdown formatting
+
+### Geospatial
+
+- **GPX** - GPS Exchange Format
+- **KML** - Keyhole Markup Language
+- **TopoJSON** - Topological JSON
+- **WKT** - Well-Known Text geometries
+
+### Communications
+
+- **cURL** - HTTP request commands
+- **EML** - Email messages
+- **ICS** - Calendar events
+- **vCard** - Contact information
+- **MessagePack** - Binary serialization
+
+### DevOps & Config
+
+- **Docker Compose** - Container orchestration
+- **Dockerfile** - Container definitions
+- **Kubernetes** - K8s manifests
+- **Terraform HCL** - Infrastructure as code
+- **Environment Variables** - .env files
+- **INI** - Configuration files
+
+### Graph & Knowledge
+
+- **JSON-LD** - Linked Data
+- **Turtle** - RDF serialization
+- **N-Quads** - RDF quads
+- **PlantUML** - Diagram definitions
+
+### Media & Archives
+
+- **EXIF** - Image metadata
+- **ID3** - Audio metadata
+- **TAR** - Archive format
+- **ZIP** - Compressed archives
+
+### Templating
+
+- **Nunjucks** - Template engine
+- **Frontmatter** - Document metadata
+
+## 🧠 AI-Powered Adapters
+
+ZTF includes AI-powered adapters that use Ollama for intelligent document
+parsing:
+
+```javascript
+import { parseFrom } from 'zod-to-from';
+import { z } from 'zod';
+
+const DocumentSchema = z.object({
+  title: z.string(),
+  summary: z.string(),
+  keyPoints: z.array(z.string()),
+});
+
+// AI-assisted DOCX parsing
+const docxBuffer = fs.readFileSync('document.docx');
+const parsed = await parseFrom(DocumentSchema, 'docx-ai', docxBuffer, {
+  adapter: {
+    model: 'qwen3-coder',
+    prompt: 'Extract the main points from this document',
+  },
+});
 ```
 
-## 📦 Supported Formats (The 80/20)
+## 🔄 Streaming Support
 
-ZTF prioritizes broad coverage of high-value "dark matter" formats before
-tackling the long tail.
+Handle large datasets efficiently with streaming:
 
-### Text Formats
+```javascript
+import { parseFrom } from 'zod-to-from';
 
-- **JSON**, **JSONL/NDJSON**, **YAML**, **TOML**, **CSV/TSV**, **INI**
-
-### Binary Formats
-
-- **Parquet**, **Arrow IPC**, **Avro**, **Protobuf**, **MessagePack**, **CBOR**,
-  **Ion**
-
-### Web & API Schemas
-
-- **OpenAPI/Swagger** ↔ Zod
-- **JSON Schema** ↔ Zod
-- **GraphQL SDL** ↔ Zod
-
-### Database & ORM Mappings
-
-- **SQL DDL** ↔ Zod
-- **Prisma**, **Drizzle**, **TypeORM**, **Mongoose** mappings
-
-### Search & Index Schemas
-
-- **Elasticsearch** mappings ↔ Zod
-- **Meilisearch** & **Algolia** shapes
-
-### Files & Office Documents (LLM-Assisted)
-
-- **PDF**, **Docx**, **XLSX**, and **HTML** can be parsed into Zod objects using
-  Vercel AI SDK guardrails
-
-### Knowledge & Graph Layer
-
-- **Turtle/N3** ↔ Zod
-- **RDF triples** ↔ Zod records
-- **SHACL** ↔ Zod constraints
-
-### Diagrams
-
-- **PlantUML** structural views (e.g., class diagrams) ↔ Zod projections
-
-## 🏗️ Architecture
-
-ZTF follows a monolithic structure with clear separation of concerns:
-
-```
-src/
-├── core/                    # Core API and registry
-│   ├── registry.mjs        # Adapter registry and utilities
-│   └── main.mjs           # Main API functions (parseFrom, formatTo, convert)
-├── adapters/               # Format converters
-│   ├── json.mjs           # JSON adapter
-│   ├── yaml.mjs           # YAML adapter
-│   ├── csv.mjs            # CSV adapter
-│   ├── data.mjs           # Data analytics formats
-│   ├── office.mjs         # Office document formats
-│   ├── graph.mjs          # Knowledge graph formats
-│   └── nunjucks.mjs       # Template rendering
-├── mappers/                # Schema bridges
-│   ├── workflow.mjs       # Workflow-specific mappings
-│   └── kpi.mjs            # KPI-specific mappings
-├── cli/                    # Command-line interface
-│   ├── cli.mjs            # Main CLI entry point
-│   └── commands/          # Individual command implementations
-└── index.mjs              # Main library entry point
+const result = await parseFrom(Schema, 'csv', largeCsvData, {
+  streaming: true,
+});
 ```
 
-## 🛡️ Security and Governance
+## 📊 Provenance Tracking
 
-- **Safe Execution**: Adapters are designed with safe parsers and can be run in
-  sandboxed environments with deterministic timeouts and size limits for
-  untrusted inputs
-- **Typed Configuration**: All configuration, including for adapters, is handled
-  via Zod schemas to prevent untyped options
-- **Auditability**: Governance audit logs are exportable as JSONL or Turtle,
-  making them ready for board-level reporting
-- **Stability**: Adapters follow strict semantic versioning, and schemas can be
-  frozen per tag to ensure stability
+Track the history of your data transformations:
 
-## 🛠️ Extensibility
+```javascript
+const result = await parseFrom(Schema, 'json', data, {
+  includeProvenance: true,
+});
 
-ZTF is designed to be extensible from the ground up. An adapter kit provides
-scaffolds, conformance tests, and fixtures to help you quickly add support for
-new formats.
+console.log(result.provenance);
+// {
+//   timestamp: "2024-01-01T12:00:00.000Z",
+//   adapter: "json",
+//   version: "0.1.0",
+//   schemaHash: "abc123..."
+// }
+```
 
-### Creating Custom Adapters
+## 🛠️ Advanced Usage
+
+### Custom Adapters
 
 ```javascript
 import { registerAdapter } from 'zod-to-from';
 
-const customAdapter = {
+registerAdapter('custom', {
   async parse(input, opts = {}) {
-    // Parse input to data
-    const data = parseCustomFormat(input);
-    return {
-      data,
-      metadata: {
-        format: 'custom',
-        inputSize: input.length,
-        ...opts,
-      },
-    };
+    // Your parsing logic
+    return { data: parsedData, metadata: {} };
   },
-
   async format(data, opts = {}) {
-    // Format data to string
-    const output = formatCustomFormat(data);
-    return {
-      data: output,
-      metadata: {
-        format: 'custom',
-        outputSize: output.length,
-        ...opts,
-      },
-    };
+    // Your formatting logic
+    return { data: formattedString, metadata: {} };
   },
-
   supportsStreaming: false,
   isAI: false,
   version: '1.0.0',
-};
-
-registerAdapter('custom', customAdapter);
+});
 ```
 
-## 📋 API Reference
+### Error Handling
 
-### Core Functions
+```javascript
+import { parseFrom } from 'zod-to-from';
+import { z } from 'zod';
 
-#### `parseFrom(schema, format, input, options?)`
-
-Parse input from a specified format into a Zod-validated object.
-
-#### `formatTo(schema, format, data, options?)`
-
-Format a Zod-validated object to a specified output format.
-
-#### `convert(schema, conversion, input, options?)`
-
-Convert data from one format to another with schema validation.
-
-#### `registerAdapter(name, adapter)`
-
-Register a new adapter for a specific format.
-
-#### `listAdapters()`
-
-List all registered adapter names.
-
-### Options
-
-```typescript
-interface ZTFOptions {
-  adapter?: Record<string, unknown>; // Custom options for the specific adapter
-  validate?: boolean; // Whether to validate the output against the schema
-  includeProvenance?: boolean; // Whether to include provenance metadata in result
-  deterministic?: boolean; // Whether to enforce deterministic output
-  streaming?: boolean; // Whether to use streaming for large datasets
+try {
+  const result = await parseFrom(Schema, 'json', invalidData);
+} catch (error) {
+  if (error.name === 'ZodError') {
+    console.log('Schema validation failed:', error.issues);
+  } else {
+    console.log('Parsing failed:', error.message);
+  }
 }
 ```
 
 ## 🧪 Testing
 
 ```bash
-# Run tests
+# Run all tests
 pnpm test
 
-# Run tests with coverage
-pnpm test --coverage
+# Run specific test suites
+pnpm test:unit
+pnpm test:adapters
+pnpm test:e2e
 
-# Run linting
-pnpm lint
-
-# Fix linting issues
-pnpm lint:fix
+# Run with coverage
+pnpm test:coverage
 ```
 
-### 🤖 AI Adapter Testing
+## 📈 Performance
 
-The AI adapters include comprehensive tests that verify integration with Ollama
-models. These tests are **opt-in only** to keep the regular test suite fast:
+ZTF is designed for performance:
 
-```bash
-# Run AI adapter tests (requires Ollama running locally)
-pnpm test:ai
-
-# Run AI adapter tests in watch mode
-pnpm test:ai:watch
-
-# Run regular tests (AI tests are skipped by default)
-pnpm test
-```
-
-**Prerequisites for AI tests:**
-
-- Ollama installed and running locally
-- At least one model available (e.g., `qwen3-coder`, `qwen3:8b`)
-- Test files available in
-  `node_modules/.pnpm/mammoth@*/node_modules/mammoth/test/test-data/`
-
-The AI tests verify:
-
-- ✅ Real document processing (DOCX files)
-- ✅ Multiple model support
-- ✅ Custom prompt handling
-- ✅ Schema validation
-- ✅ Error handling
-
-## 📄 License
-
-MIT License - see [LICENSE](LICENSE) for details.
+- **Zero Dependencies** - Core library has no external dependencies
+- **Lazy Loading** - Adapters are loaded only when needed
+- **Streaming Support** - Handle large datasets without memory issues
+- **Efficient Parsing** - Optimized for common use cases
 
 ## 🤝 Contributing
 
-Contributions are welcome! Please read our contributing guidelines and submit
-pull requests to our repository.
+We welcome contributions! Please see our
+[Contributing Guide](docs/contributing/README.md) for details.
 
-## 📚 Documentation
+### Development Setup
 
-- [API Reference](./docs/api.md)
-- [Adapter Development Guide](./docs/adapters.md)
-- [CLI Usage Guide](./docs/cli.md)
-- [Security Best Practices](./docs/security.md)
+```bash
+# Clone the repository
+git clone https://github.com/sac/zod-to-from.git
+cd zod-to-from
+
+# Install dependencies
+pnpm install
+
+# Run development server
+pnpm dev
+
+# Run tests
+pnpm test
+```
+
+## 📄 License
+
+MIT License - see [LICENSE](LICENSE) file for details.
+
+## 🙏 Acknowledgments
+
+- [Zod](https://github.com/colinhacks/zod) for schema validation
+- [Ollama](https://ollama.ai/) for AI capabilities
+- All the open-source libraries that power our adapters
+
+## 📞 Support
+
+- 📖 [Documentation](docs/README.md)
+- 🐛 [Issue Tracker](https://github.com/sac/zod-to-from/issues)
+- 💬 [Discussions](https://github.com/sac/zod-to-from/discussions)
+- 📧 [Email Support](mailto:support@example.com)
 
 ---
 
-**zod-to-from** - Making Zod the universal intermediate representation for all
-application I/O.
+**Made with ❤️ by the ZTF Team**

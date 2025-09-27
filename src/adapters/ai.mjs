@@ -9,7 +9,7 @@ import { createPackManifest, registerPack } from '../core/index.mjs';
 
 /**
  * AI-Assisted DOCX Adapter
- * Uses 'mammoth' to extract raw text and Vercel AI SDK to structure it.
+ * Uses 'mammoth' to extract raw text and the Vercel AI SDK to structure it.
  * @type {Adapter}
  */
 const docxAiAdapter = {
@@ -24,7 +24,6 @@ const docxAiAdapter = {
     const { default: mammoth } = await import('mammoth');
 
     // 1. Extract raw text from the DOCX buffer
-    // Convert string input to Buffer for mammoth
     const buffer = Buffer.isBuffer(input) ? input : Buffer.from(input, 'binary');
     const { value: textContent } = await mammoth.extractRawText({ buffer });
 
@@ -53,7 +52,7 @@ const docxAiAdapter = {
 
 /**
  * AI-Assisted PPTX Adapter
- * Uses 'jszip' to extract slide text and Vercel AI SDK to structure it.
+ * Uses 'jszip' to extract slide text and the Vercel AI SDK to structure it.
  * @type {Adapter}
  */
 const pptxAiAdapter = {
@@ -67,14 +66,12 @@ const pptxAiAdapter = {
     const { default: JSZip } = await import('jszip');
 
     // 1. Unzip the PPTX and extract text from slide XML files
-    // Convert string input to Buffer for JSZip
     const buffer = Buffer.isBuffer(input) ? input : Buffer.from(input, 'binary');
     const zip = await JSZip.loadAsync(buffer);
     const slidePromises = [];
     const slidesFolder = zip.folder('ppt/slides');
     if (slidesFolder) {
-      for (const relativePath of Object.keys(slidesFolder.files)) {
-        const file = slidesFolder.files[relativePath];
+      for (const [relativePath, file] of Object.entries(slidesFolder.files)) {
         if (relativePath.endsWith('.xml')) {
           slidePromises.push(file.async('string'));
         }
@@ -115,7 +112,7 @@ const pptxAiAdapter = {
 
 /**
  * AI-Assisted XLSX Adapter
- * Uses 'exceljs' to read worksheet data and Vercel AI SDK to structure it.
+ * Uses 'exceljs' to read worksheet data and the Vercel AI SDK to structure it.
  * @type {Adapter}
  */
 const xlsxAiAdapter = {
@@ -130,7 +127,6 @@ const xlsxAiAdapter = {
 
     // 1. Read the first worksheet and convert it to a CSV-like string
     const workbook = new ExcelJS.Workbook();
-    // Convert string input to Buffer for ExcelJS
     const buffer = Buffer.isBuffer(input) ? input : Buffer.from(input, 'binary');
     // @ts-ignore - Buffer type compatibility issue with ExcelJS
     await workbook.xlsx.load(buffer);
