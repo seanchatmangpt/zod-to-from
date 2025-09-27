@@ -4,7 +4,11 @@
   "description": "A collection of to/from adapters that convert between I/O formats and Zod-validated objects",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/sac/zod-to-from.git"
+    "url": "git+https://github.com/seanchatmangpt/zod-to-from.git"
+  },
+  "homepage": "https://github.com/seanchatmangpt/zod-to-from#readme",
+  "bugs": {
+    "url": "https://github.com/seanchatmangpt/zod-to-from/issues"
   },
   "license": "MIT",
   "sideEffects": false,

@@ -46,7 +46,14 @@ yarn add zod-to-from
 ### New `from/to` API (v1.0.0)
 
 ```javascript
-import { fromJson, toJson, fromCsv, toCsv, fromYaml, toYaml } from 'zod-to-from';
+import {
+  fromJson,
+  toJson,
+  fromCsv,
+  toCsv,
+  fromYaml,
+  toYaml,
+} from 'zod-to-from';
 
 // Parse JSON to structured data
 const jsonData = '{"name": "Alice", "age": 30, "email": "alice@example.com"}';
@@ -54,7 +61,11 @@ const user = await fromJson(jsonData);
 console.log(user.data); // { name: "Alice", age: 30, email: "alice@example.com" }
 
 // Format structured data to JSON
-const jsonOutput = await toJson({ name: "Bob", age: 25, email: "bob@example.com" });
+const jsonOutput = await toJson({
+  name: 'Bob',
+  age: 25,
+  email: 'bob@example.com',
+});
 console.log(jsonOutput.data);
 // {
 //   "name": "Bob",
@@ -68,7 +79,9 @@ const csvResult = await fromCsv(csvData);
 console.log(csvResult.data.data); // [{ name: "Charlie", age: 35, email: "charlie@example.com" }]
 
 // Format structured data to CSV
-const csvOutput = await toCsv([{ name: "David", age: 40, email: "david@example.com" }]);
+const csvOutput = await toCsv([
+  { name: 'David', age: 40, email: 'david@example.com' },
+]);
 console.log(csvOutput.data);
 // name,age,email
 // David,40,david@example.com
@@ -297,7 +310,7 @@ We welcome contributions! Please see our
 
 ```bash
 # Clone the repository
-git clone https://github.com/sac/zod-to-from.git
+git clone https://github.com/seanchatmangpt/zod-to-from.git
 cd zod-to-from
 
 # Install dependencies
@@ -323,9 +336,8 @@ MIT License - see [LICENSE](LICENSE) file for details.
 ## 📞 Support
 
 - 📖 [Documentation](docs/README.md)
-- 🐛 [Issue Tracker](https://github.com/sac/zod-to-from/issues)
-- 💬 [Discussions](https://github.com/sac/zod-to-from/discussions)
-- 📧 [Email Support](mailto:support@example.com)
+- 🐛 [Issue Tracker](https://github.com/seanchatmangpt/zod-to-from/issues)
+- 💬 [Discussions](https://github.com/seanchatmangpt/zod-to-from/discussions)
 
 ---
 
