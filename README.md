@@ -9,17 +9,18 @@ KML, or Office documents, ZTF has you covered.
 
 ## 🆕 What's New in v1.0.0
 
-- **New `from/to` API** - Clean, intuitive function naming
+- **New `from/to` API** - Clean, intuitive function naming with Zod schema validation
 - **47 Format Adapters** - Comprehensive format support
-- **94 Export Functions** - Direct access to all adapters
-- **Improved Type Safety** - Better JSDoc documentation
-- **Enhanced Testing** - Comprehensive test coverage
+- **94 Export Functions** - Direct access to all adapters with schema validation
+- **Improved Type Safety** - Better JSDoc documentation and runtime validation
+- **Enhanced Testing** - Comprehensive test coverage with schema validation
 
 ## 🚀 Features
 
 - **47 Format Adapters** - Support for JSON, YAML, CSV, XML, Office documents,
   geospatial data, and more
 - **Zod Schema Validation** - Type-safe data conversion with runtime validation
+- **New `from/to` API** - Clean, intuitive function naming with schema validation
 - **AI-Powered Adapters** - Intelligent parsing for complex documents using
   Ollama
 - **Streaming Support** - Handle large datasets efficiently
@@ -54,35 +55,45 @@ import {
   fromYaml,
   toYaml,
 } from 'zod-to-from';
+import { z } from 'zod';
 
-// Parse JSON to structured data
+// Define your schema
+const UserSchema = z.object({
+  name: z.string(),
+  age: z.number(),
+  email: z.string().email(),
+});
+
+// Parse JSON to structured data with schema validation
 const jsonData = '{"name": "Alice", "age": 30, "email": "alice@example.com"}';
-const user = await fromJson(jsonData);
-console.log(user.data); // { name: "Alice", age: 30, email: "alice@example.com" }
+const user = await fromJson(UserSchema, jsonData);
+console.log(user); // { name: "Alice", age: 30, email: "alice@example.com" }
 
-// Format structured data to JSON
-const jsonOutput = await toJson({
+// Format structured data to JSON with schema validation
+const jsonOutput = await toJson(UserSchema, {
   name: 'Bob',
   age: 25,
   email: 'bob@example.com',
 });
-console.log(jsonOutput.data);
+console.log(jsonOutput);
 // {
 //   "name": "Bob",
 //   "age": 25,
 //   "email": "bob@example.com"
 // }
 
-// Parse CSV to structured data
+// Parse CSV to structured data with schema validation
 const csvData = 'name,age,email\nCharlie,35,charlie@example.com';
-const csvResult = await fromCsv(csvData);
-console.log(csvResult.data.data); // [{ name: "Charlie", age: 35, email: "charlie@example.com" }]
+const csvResult = await fromCsv(UserSchema, csvData);
+console.log(csvResult.items); // [{ name: "Charlie", age: 35, email: "charlie@example.com" }]
 
-// Format structured data to CSV
-const csvOutput = await toCsv([
-  { name: 'David', age: 40, email: 'david@example.com' },
-]);
-console.log(csvOutput.data);
+// Format structured data to CSV with schema validation
+const csvOutput = await toCsv(UserSchema, {
+  items: [
+    { name: 'David', age: 40, email: 'david@example.com' },
+  ],
+});
+console.log(csvOutput);
 // name,age,email
 // David,40,david@example.com
 ```

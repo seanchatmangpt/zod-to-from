@@ -15,179 +15,129 @@ import './adapters/office.mjs';
 import './adapters/templating.mjs';
 
 // Import all adapter exports
-import { docxAiAdapter, pptxAiAdapter, xlsxAiAdapter } from './adapters/ai.mjs';
-
-import {
-  curlAdapter,
-  emlAdapter,
-  icsAdapter,
-  msgpackAdapter,
-  vcardAdapter,
-} from './adapters/communications.mjs';
-
-import {
-  arrowAdapter,
-  avroAdapter,
-  csvAdapter,
-  jsonAdapter,
-  ndjsonAdapter,
-  parquetAdapter,
-  protobufAdapter,
-  sqliteAdapter,
-} from './adapters/data.mjs';
-
-import {
-  composeAdapter,
-  dockerfileAdapter,
-  envAdapter,
-  iniAdapter,
-  k8sAdapter,
-  terraformHclAdapter,
-  tomlAdapter,
-  yamlAdapter,
-} from './adapters/devops.mjs';
-
-import { gpxAdapter, kmlAdapter, topojsonAdapter, wktAdapter } from './adapters/geo.mjs';
-
-import {
-  jsonldAdapter,
-  nqAdapter,
-  plantumlAdapter,
-  rdfxmlAdapter,
-  ttlAdapter,
-} from './adapters/graph.mjs';
-
-import {
-  exifAdapter,
-  id3Adapter,
-  pdfTextAdapter,
-  tarAdapter,
-  zipAdapter,
-} from './adapters/media.mjs';
-
-import {
-  docxTableAdapter,
-  htmlAdapter,
-  mdAdapter,
-  csvAdapter as officeCsvAdapter,
-  pdfTableAdapter,
-  pptxSlidesAdapter,
-  xlsxAdapter,
-} from './adapters/office.mjs';
-
-import { frontmatterAdapter, nunjucksAdapter } from './adapters/templating.mjs';
 
 // Export core functionality
 export * from './core/index.mjs';
 
-// AI Adapters
-export const fromDocxAi = docxAiAdapter.parse;
-export const toDocxAi = docxAiAdapter.format;
-export const fromPptxAi = pptxAiAdapter.parse;
-export const toPptxAi = pptxAiAdapter.format;
-export const fromXlsxAi = xlsxAiAdapter.parse;
-export const toXlsxAi = xlsxAiAdapter.format;
+// Import core functions for from/to wrappers
+import { formatTo, parseFrom } from './core/main.mjs';
 
-// Communications Adapters
-export const fromCurl = curlAdapter.parse;
-export const toCurl = curlAdapter.format;
-export const fromEml = emlAdapter.parse;
-export const toEml = emlAdapter.format;
-export const fromIcs = icsAdapter.parse;
-export const toIcs = icsAdapter.format;
-export const fromMsgpack = msgpackAdapter.parse;
-export const toMsgpack = msgpackAdapter.format;
-export const fromVcard = vcardAdapter.parse;
-export const toVcard = vcardAdapter.format;
+// Helper functions for from/to wrappers
+const fromHelper = (schema, format, input, opts) => parseFrom(schema, format, input, opts);
+const toHelper = (schema, format, data, opts) => formatTo(schema, format, data, opts);
 
-// Data Adapters
-export const fromArrow = arrowAdapter.parse;
-export const toArrow = arrowAdapter.format;
-export const fromAvro = avroAdapter.parse;
-export const toAvro = avroAdapter.format;
-export const fromCsv = csvAdapter.parse;
-export const toCsv = csvAdapter.format;
-export const fromJson = jsonAdapter.parse;
-export const toJson = jsonAdapter.format;
-export const fromNdjson = ndjsonAdapter.parse;
-export const toNdjson = ndjsonAdapter.format;
-export const fromParquet = parquetAdapter.parse;
-export const toParquet = parquetAdapter.format;
-export const fromProtobuf = protobufAdapter.parse;
-export const toProtobuf = protobufAdapter.format;
-export const fromSqlite = sqliteAdapter.parse;
-export const toSqlite = sqliteAdapter.format;
+// AI Adapters - Schema-validated from/to functions
+export const fromDocxAi = (schema, input, opts) => fromHelper(schema, 'docx-ai', input, opts);
+export const toDocxAi = (schema, data, opts) => toHelper(schema, 'docx-ai', data, opts);
+export const fromPptxAi = (schema, input, opts) => fromHelper(schema, 'pptx-ai', input, opts);
+export const toPptxAi = (schema, data, opts) => toHelper(schema, 'pptx-ai', data, opts);
+export const fromXlsxAi = (schema, input, opts) => fromHelper(schema, 'xlsx-ai', input, opts);
+export const toXlsxAi = (schema, data, opts) => toHelper(schema, 'xlsx-ai', data, opts);
 
-// DevOps Adapters
-export const fromCompose = composeAdapter.parse;
-export const toCompose = composeAdapter.format;
-export const fromDockerfile = dockerfileAdapter.parse;
-export const toDockerfile = dockerfileAdapter.format;
-export const fromEnv = envAdapter.parse;
-export const toEnv = envAdapter.format;
-export const fromIni = iniAdapter.parse;
-export const toIni = iniAdapter.format;
-export const fromK8s = k8sAdapter.parse;
-export const toK8s = k8sAdapter.format;
-export const fromTerraformHcl = terraformHclAdapter.parse;
-export const toTerraformHcl = terraformHclAdapter.format;
-export const fromToml = tomlAdapter.parse;
-export const toToml = tomlAdapter.format;
-export const fromYaml = yamlAdapter.parse;
-export const toYaml = yamlAdapter.format;
+// Communications Adapters - Schema-validated from/to functions
+export const fromCurl = (schema, input, opts) => fromHelper(schema, 'curl', input, opts);
+export const toCurl = (schema, data, opts) => toHelper(schema, 'curl', data, opts);
+export const fromEml = (schema, input, opts) => fromHelper(schema, 'eml', input, opts);
+export const toEml = (schema, data, opts) => toHelper(schema, 'eml', data, opts);
+export const fromIcs = (schema, input, opts) => fromHelper(schema, 'ics', input, opts);
+export const toIcs = (schema, data, opts) => toHelper(schema, 'ics', data, opts);
+export const fromMsgpack = (schema, input, opts) => fromHelper(schema, 'msgpack', input, opts);
+export const toMsgpack = (schema, data, opts) => toHelper(schema, 'msgpack', data, opts);
+export const fromVcard = (schema, input, opts) => fromHelper(schema, 'vcard', input, opts);
+export const toVcard = (schema, data, opts) => toHelper(schema, 'vcard', data, opts);
 
-// Geo Adapters
-export const fromGpx = gpxAdapter.parse;
-export const toGpx = gpxAdapter.format;
-export const fromKml = kmlAdapter.parse;
-export const toKml = kmlAdapter.format;
-export const fromTopojson = topojsonAdapter.parse;
-export const toTopojson = topojsonAdapter.format;
-export const fromWkt = wktAdapter.parse;
-export const toWkt = wktAdapter.format;
+// Data Adapters - Schema-validated from/to functions
+export const fromArrow = (schema, input, opts) => fromHelper(schema, 'arrow', input, opts);
+export const toArrow = (schema, data, opts) => toHelper(schema, 'arrow', data, opts);
+export const fromAvro = (schema, input, opts) => fromHelper(schema, 'avro', input, opts);
+export const toAvro = (schema, data, opts) => toHelper(schema, 'avro', data, opts);
+export const fromCsv = (schema, input, opts) => fromHelper(schema, 'csv', input, opts);
+export const toCsv = (schema, data, opts) => toHelper(schema, 'csv', data, opts);
+export const fromJson = (schema, input, opts) => fromHelper(schema, 'json', input, opts);
+export const toJson = (schema, data, opts) => toHelper(schema, 'json', data, opts);
+export const fromNdjson = (schema, input, opts) => fromHelper(schema, 'ndjson', input, opts);
+export const toNdjson = (schema, data, opts) => toHelper(schema, 'ndjson', data, opts);
+export const fromParquet = (schema, input, opts) => fromHelper(schema, 'parquet', input, opts);
+export const toParquet = (schema, data, opts) => toHelper(schema, 'parquet', data, opts);
+export const fromProtobuf = (schema, input, opts) => fromHelper(schema, 'protobuf', input, opts);
+export const toProtobuf = (schema, data, opts) => toHelper(schema, 'protobuf', data, opts);
+export const fromSqlite = (schema, input, opts) => fromHelper(schema, 'sqlite', input, opts);
+export const toSqlite = (schema, data, opts) => toHelper(schema, 'sqlite', data, opts);
 
-// Graph Adapters
-export const fromJsonld = jsonldAdapter.parse;
-export const toJsonld = jsonldAdapter.format;
-export const fromNq = nqAdapter.parse;
-export const toNq = nqAdapter.format;
-export const fromPlantuml = plantumlAdapter.parse;
-export const toPlantuml = plantumlAdapter.format;
-export const fromRdfxml = rdfxmlAdapter.parse;
-export const toRdfxml = rdfxmlAdapter.format;
-export const fromTtl = ttlAdapter.parse;
-export const toTtl = ttlAdapter.format;
+// DevOps Adapters - Schema-validated from/to functions
+export const fromCompose = (schema, input, opts) => fromHelper(schema, 'compose', input, opts);
+export const toCompose = (schema, data, opts) => toHelper(schema, 'compose', data, opts);
+export const fromDockerfile = (schema, input, opts) =>
+  fromHelper(schema, 'dockerfile', input, opts);
+export const toDockerfile = (schema, data, opts) => toHelper(schema, 'dockerfile', data, opts);
+export const fromEnv = (schema, input, opts) => fromHelper(schema, 'env', input, opts);
+export const toEnv = (schema, data, opts) => toHelper(schema, 'env', data, opts);
+export const fromIni = (schema, input, opts) => fromHelper(schema, 'ini', input, opts);
+export const toIni = (schema, data, opts) => toHelper(schema, 'ini', data, opts);
+export const fromK8s = (schema, input, opts) => fromHelper(schema, 'k8s', input, opts);
+export const toK8s = (schema, data, opts) => toHelper(schema, 'k8s', data, opts);
+export const fromTerraformHcl = (schema, input, opts) =>
+  fromHelper(schema, 'terraform-hcl', input, opts);
+export const toTerraformHcl = (schema, data, opts) => toHelper(schema, 'terraform-hcl', data, opts);
+export const fromToml = (schema, input, opts) => fromHelper(schema, 'toml', input, opts);
+export const toToml = (schema, data, opts) => toHelper(schema, 'toml', data, opts);
+export const fromYaml = (schema, input, opts) => fromHelper(schema, 'yaml', input, opts);
+export const toYaml = (schema, data, opts) => toHelper(schema, 'yaml', data, opts);
 
-// Media Adapters
-export const fromExif = exifAdapter.parse;
-export const toExif = exifAdapter.format;
-export const fromId3 = id3Adapter.parse;
-export const toId3 = id3Adapter.format;
-export const fromPdfText = pdfTextAdapter.parse;
-export const toPdfText = pdfTextAdapter.format;
-export const fromTar = tarAdapter.parse;
-export const toTar = tarAdapter.format;
-export const fromZip = zipAdapter.parse;
-export const toZip = zipAdapter.format;
+// Geo Adapters - Schema-validated from/to functions
+export const fromGpx = (schema, input, opts) => fromHelper(schema, 'gpx', input, opts);
+export const toGpx = (schema, data, opts) => toHelper(schema, 'gpx', data, opts);
+export const fromKml = (schema, input, opts) => fromHelper(schema, 'kml', input, opts);
+export const toKml = (schema, data, opts) => toHelper(schema, 'kml', data, opts);
+export const fromTopojson = (schema, input, opts) => fromHelper(schema, 'topojson', input, opts);
+export const toTopojson = (schema, data, opts) => toHelper(schema, 'topojson', data, opts);
+export const fromWkt = (schema, input, opts) => fromHelper(schema, 'wkt', input, opts);
+export const toWkt = (schema, data, opts) => toHelper(schema, 'wkt', data, opts);
 
-// Office Adapters
-export const fromOfficeCsv = officeCsvAdapter.parse;
-export const toOfficeCsv = officeCsvAdapter.format;
-export const fromDocxTable = docxTableAdapter.parse;
-export const toDocxTable = docxTableAdapter.format;
-export const fromHtml = htmlAdapter.parse;
-export const toHtml = htmlAdapter.format;
-export const fromMd = mdAdapter.parse;
-export const toMd = mdAdapter.format;
-export const fromPdfTable = pdfTableAdapter.parse;
-export const toPdfTable = pdfTableAdapter.format;
-export const fromPptxSlides = pptxSlidesAdapter.parse;
-export const toPptxSlides = pptxSlidesAdapter.format;
-export const fromXlsx = xlsxAdapter.parse;
-export const toXlsx = xlsxAdapter.format;
+// Graph Adapters - Schema-validated from/to functions
+export const fromJsonld = (schema, input, opts) => fromHelper(schema, 'jsonld', input, opts);
+export const toJsonld = (schema, data, opts) => toHelper(schema, 'jsonld', data, opts);
+export const fromNq = (schema, input, opts) => fromHelper(schema, 'nq', input, opts);
+export const toNq = (schema, data, opts) => toHelper(schema, 'nq', data, opts);
+export const fromPlantuml = (schema, input, opts) => fromHelper(schema, 'plantuml', input, opts);
+export const toPlantuml = (schema, data, opts) => toHelper(schema, 'plantuml', data, opts);
+export const fromRdfxml = (schema, input, opts) => fromHelper(schema, 'rdfxml', input, opts);
+export const toRdfxml = (schema, data, opts) => toHelper(schema, 'rdfxml', data, opts);
+export const fromTtl = (schema, input, opts) => fromHelper(schema, 'ttl', input, opts);
+export const toTtl = (schema, data, opts) => toHelper(schema, 'ttl', data, opts);
 
-// Templating Adapters
-export const fromFrontmatter = frontmatterAdapter.parse;
-export const toFrontmatter = frontmatterAdapter.format;
-export const fromNunjucks = nunjucksAdapter.parse;
-export const toNunjucks = nunjucksAdapter.format;
+// Media Adapters - Schema-validated from/to functions
+export const fromExif = (schema, input, opts) => fromHelper(schema, 'exif', input, opts);
+export const toExif = (schema, data, opts) => toHelper(schema, 'exif', data, opts);
+export const fromId3 = (schema, input, opts) => fromHelper(schema, 'id3', input, opts);
+export const toId3 = (schema, data, opts) => toHelper(schema, 'id3', data, opts);
+export const fromPdfText = (schema, input, opts) => fromHelper(schema, 'pdf-text', input, opts);
+export const toPdfText = (schema, data, opts) => toHelper(schema, 'pdf-text', data, opts);
+export const fromTar = (schema, input, opts) => fromHelper(schema, 'tar', input, opts);
+export const toTar = (schema, data, opts) => toHelper(schema, 'tar', data, opts);
+export const fromZip = (schema, input, opts) => fromHelper(schema, 'zip', input, opts);
+export const toZip = (schema, data, opts) => toHelper(schema, 'zip', data, opts);
+
+// Office Adapters - Schema-validated from/to functions
+export const fromOfficeCsv = (schema, input, opts) => fromHelper(schema, 'office-csv', input, opts);
+export const toOfficeCsv = (schema, data, opts) => toHelper(schema, 'office-csv', data, opts);
+export const fromDocxTable = (schema, input, opts) => fromHelper(schema, 'docx-table', input, opts);
+export const toDocxTable = (schema, data, opts) => toHelper(schema, 'docx-table', data, opts);
+export const fromHtml = (schema, input, opts) => fromHelper(schema, 'html', input, opts);
+export const toHtml = (schema, data, opts) => toHelper(schema, 'html', data, opts);
+export const fromMd = (schema, input, opts) => fromHelper(schema, 'md', input, opts);
+export const toMd = (schema, data, opts) => toHelper(schema, 'md', data, opts);
+export const fromPdfTable = (schema, input, opts) => fromHelper(schema, 'pdf-table', input, opts);
+export const toPdfTable = (schema, data, opts) => toHelper(schema, 'pdf-table', data, opts);
+export const fromPptxSlides = (schema, input, opts) =>
+  fromHelper(schema, 'pptx-slides', input, opts);
+export const toPptxSlides = (schema, data, opts) => toHelper(schema, 'pptx-slides', data, opts);
+export const fromXlsx = (schema, input, opts) => fromHelper(schema, 'xlsx', input, opts);
+export const toXlsx = (schema, data, opts) => toHelper(schema, 'xlsx', data, opts);
+
+// Templating Adapters - Schema-validated from/to functions
+export const fromFrontmatter = (schema, input, opts) =>
+  fromHelper(schema, 'frontmatter', input, opts);
+export const toFrontmatter = (schema, data, opts) => toHelper(schema, 'frontmatter', data, opts);
+export const fromNunjucks = (schema, input, opts) => fromHelper(schema, 'nunjucks', input, opts);
+export const toNunjucks = (schema, data, opts) => toHelper(schema, 'nunjucks', data, opts);

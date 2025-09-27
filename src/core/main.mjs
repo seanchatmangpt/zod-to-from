@@ -117,7 +117,7 @@ export async function convert(schema, conversion, input, opts = {}) {
   const formatResult = await formatTo(schema, conversion.to, parsedData, opts);
 
   // If provenance was requested, combine the metadata
-  if (opts.includeProvenance && parseResult.provenance && formatResult.provenance) {
+  if (opts.includeProvenance && typeof parseResult === 'object' && parseResult.provenance && typeof formatResult === 'object' && formatResult.provenance) {
     return {
       data: formatResult.data,
       provenance: {

@@ -1,5 +1,5 @@
 /**
- * @typedef {import('../core/index.mjs').Adapter} Adapter
+ * @typedef {import('../core/registry.mjs').Adapter} Adapter
  */
 
 import { parse as csvParse } from 'csv-parse/sync';
@@ -74,7 +74,6 @@ const csvAdapter = {
   },
 
   async format(data, opts = {}) {
-    console.log('CSV format received data:', JSON.stringify(data, null, 2));
     const options = {
       header: true,
       ...opts,

@@ -3,7 +3,7 @@
     "activeCommit": 0,
     "commits": [
         {
-            "activePatchIndex": 7,
+            "activePatchIndex": 8,
             "patches": [
                 {
                     "date": 1758642289502,
@@ -36,6 +36,10 @@
                 {
                     "date": 1759006242858,
                     "content": "Index: \n===================================================================\n--- \n+++ \n@@ -1,9 +1,12 @@\n {\n   \"name\": \"zod-to-from\",\n-  \"version\": \"0.0.0\",\n+  \"version\": \"1.0.0\",\n   \"description\": \"A collection of to/from adapters that convert between I/O formats and Zod-validated objects\",\n-  \"repository\": \"unjs/zod-to-from\",\n+  \"repository\": {\n+    \"type\": \"git\",\n+    \"url\": \"git+https://github.com/sac/zod-to-from.git\"\n+  },\n   \"license\": \"MIT\",\n   \"sideEffects\": false,\n   \"type\": \"module\",\n   \"exports\": {\n@@ -85,8 +88,9 @@\n     \"changelogen\": \"^0.6.2\",\n     \"citty-test-utils\": \"^0.5.1\",\n     \"eslint\": \"^9.33.0\",\n     \"eslint-config-unjs\": \"^0.5.0\",\n+    \"msw\": \"^2.11.3\",\n     \"prettier\": \"^3.6.2\",\n     \"vitest\": \"^3.2.4\"\n   },\n   \"packageManager\": \"pnpm@10.15.0\"\n"
+                },
+                {
+                    "date": 1759006342260,
+                    "content": "Index: \n===================================================================\n--- \n+++ \n@@ -3,10 +3,14 @@\n   \"version\": \"1.0.0\",\n   \"description\": \"A collection of to/from adapters that convert between I/O formats and Zod-validated objects\",\n   \"repository\": {\n     \"type\": \"git\",\n-    \"url\": \"git+https://github.com/sac/zod-to-from.git\"\n+    \"url\": \"git+https://github.com/seanchatmangpt/zod-to-from.git\"\n   },\n+  \"homepage\": \"https://github.com/seanchatmangpt/zod-to-from#readme\",\n+  \"bugs\": {\n+    \"url\": \"https://github.com/seanchatmangpt/zod-to-from/issues\"\n+  },\n   \"license\": \"MIT\",\n   \"sideEffects\": false,\n   \"type\": \"module\",\n   \"exports\": {\n"
                 }
             ],
             "date": 1758642289502,
