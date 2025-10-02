@@ -3,7 +3,7 @@
     "activeCommit": 0,
     "commits": [
         {
-            "activePatchIndex": 8,
+            "activePatchIndex": 9,
             "patches": [
                 {
                     "date": 1758642289502,
@@ -40,6 +40,10 @@
                 {
                     "date": 1759006342260,
                     "content": "Index: \n===================================================================\n--- \n+++ \n@@ -3,10 +3,14 @@\n   \"version\": \"1.0.0\",\n   \"description\": \"A collection of to/from adapters that convert between I/O formats and Zod-validated objects\",\n   \"repository\": {\n     \"type\": \"git\",\n-    \"url\": \"git+https://github.com/sac/zod-to-from.git\"\n+    \"url\": \"git+https://github.com/seanchatmangpt/zod-to-from.git\"\n   },\n+  \"homepage\": \"https://github.com/seanchatmangpt/zod-to-from#readme\",\n+  \"bugs\": {\n+    \"url\": \"https://github.com/seanchatmangpt/zod-to-from/issues\"\n+  },\n   \"license\": \"MIT\",\n   \"sideEffects\": false,\n   \"type\": \"module\",\n   \"exports\": {\n"
+                },
+                {
+                    "date": 1759007355136,
+                    "content": "Index: \n===================================================================\n--- \n+++ \n@@ -1,7 +1,7 @@\n {\n   \"name\": \"zod-to-from\",\n-  \"version\": \"1.0.0\",\n+  \"version\": \"1.0.1\",\n   \"description\": \"A collection of to/from adapters that convert between I/O formats and Zod-validated objects\",\n   \"repository\": {\n     \"type\": \"git\",\n     \"url\": \"git+https://github.com/seanchatmangpt/zod-to-from.git\"\n"
                 }
             ],
             "date": 1758642289502,
