@@ -29,6 +29,11 @@
  * @property {string} [promptHash] - Hash of prompt used (for AI adapters)
  * @property {string} version - ZTF version
  * @property {string} [schemaHash] - Hash of the schema used
+ * @property {string} [schemaName] - Name of versioned schema (for migrations)
+ * @property {number} [schemaVersion] - Version of schema used
+ * @property {number[]} [migrationsApplied] - Array of version numbers migrated through
+ * @property {string[]} [migrationDescriptions] - Descriptions of migrations applied
+ * @property {string} [migrationTimestamp] - When migrations were applied
  */
 
 /**
@@ -46,6 +51,7 @@
  * @property {boolean} [includeProvenance] - Whether to include provenance metadata in result
  * @property {boolean} [deterministic] - Whether to enforce deterministic output (stable key ordering, canonical formats)
  * @property {boolean} [streaming] - Whether to use streaming for large datasets
+ * @property {import('./transforms.mjs').TransformConfig} [transform] - Transform configuration to apply during conversion
  */
 
 /**
@@ -198,6 +204,21 @@ export function createProvenance(adapter, sourceFormat, targetFormat, options = 
   }
   if (options.schemaHash !== undefined) {
     provenance.schemaHash = options.schemaHash;
+  }
+  if (options.schemaName !== undefined) {
+    provenance.schemaName = options.schemaName;
+  }
+  if (options.schemaVersion !== undefined) {
+    provenance.schemaVersion = options.schemaVersion;
+  }
+  if (options.migrationsApplied !== undefined) {
+    provenance.migrationsApplied = options.migrationsApplied;
+  }
+  if (options.migrationDescriptions !== undefined) {
+    provenance.migrationDescriptions = options.migrationDescriptions;
+  }
+  if (options.migrationTimestamp !== undefined) {
+    provenance.migrationTimestamp = options.migrationTimestamp;
   }
 
   return provenance;

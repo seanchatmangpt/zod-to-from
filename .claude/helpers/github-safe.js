@@ -9,11 +9,11 @@
  *   ./github-safe.js pr create --title "Title" --body "Complex body"
  */
 
-import { execSync } from 'child_process';
-import { writeFileSync, unlinkSync } from 'fs';
-import { tmpdir } from 'os';
-import { join } from 'path';
-import { randomBytes } from 'crypto';
+import { execSync } from 'node:child_process';
+import { writeFileSync, unlinkSync } from 'node:fs';
+import { tmpdir } from 'node:os';
+import { join } from 'node:path';
+import { randomBytes } from 'node:crypto';
 
 const args = process.argv.slice(2);
 
@@ -82,7 +82,7 @@ if ((command === 'issue' || command === 'pr') &&
       
       const result = execSync(ghCommand, { 
         stdio: 'inherit',
-        timeout: 30000 // 30 second timeout
+        timeout: 30_000 // 30 second timeout
       });
       
     } catch (error) {
@@ -92,7 +92,7 @@ if ((command === 'issue' || command === 'pr') &&
       // Clean up
       try {
         unlinkSync(tmpFile);
-      } catch (e) {
+      } catch {
         // Ignore cleanup errors
       }
     }

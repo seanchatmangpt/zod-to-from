@@ -2711,7 +2711,7 @@ packages:
   puppeteer@21.11.0:
     resolution: {integrity: sha512-9jTHuYe22TD3sNxy0nEIzC7ZrlRnDgeX3xPkbS7PnbdwYjl2o/z/YuCrRBwezdKpbTDTJ4VqIggzNyeRcKq3cg==}
     engines: {node: '>=16.13.2'}
-    deprecated: < 24.10.2 is no longer supported
+    deprecated: < 24.15.0 is no longer supported
     hasBin: true
 
   queue-microtask@1.2.3:

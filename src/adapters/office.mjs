@@ -307,7 +307,7 @@ const docxTableAdapter = {
         zip = new PizZip(input);
       } else {
         // For file paths, we'd need fs - this is a simplified version
-        throw new Error(
+        throw new TypeError(
           'DOCX parsing from file paths requires fs module - use buffer input instead'
         );
       }
@@ -328,7 +328,7 @@ const docxTableAdapter = {
           row
             .split('|')
             .map(cell => cell.trim())
-            .filter(cell => cell)
+            .filter(Boolean)
         );
       });
 
@@ -459,7 +459,7 @@ const pdfTableAdapter = {
         pdfBytes = input;
       } else {
         // For file paths, we'd need fs - this is a simplified version
-        throw new Error(
+        throw new TypeError(
           'PDF parsing from file paths requires fs module - use buffer input instead'
         );
       }
@@ -626,7 +626,7 @@ const pptxSlidesAdapter = {
         pptxBuffer = input;
       } else {
         // For file paths, we'd need fs - this is a simplified version
-        throw new Error(
+        throw new TypeError(
           'PPTX parsing from file paths requires fs module - use buffer input instead'
         );
       }
@@ -772,7 +772,7 @@ const xlsxAdapter = {
         await workbook.xlsx.load(input);
       } else {
         // For file paths, we'd need fs - this is a simplified version
-        throw new Error(
+        throw new TypeError(
           'XLSX parsing from file paths requires fs module - use buffer input instead'
         );
       }
