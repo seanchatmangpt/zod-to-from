@@ -10,31 +10,31 @@ import { createPackManifest, registerPack } from '../core/index.mjs';
  * @returns {Object|null} Parsed metadata
  */
 function parseGPXMetadata(gpxElement) {
-  const metadataElement = gpxElement.getElementsByTagName('metadata')[0];
+  const metadataElement = gpxElement.querySelectorAll('metadata')[0];
   if (!metadataElement) return undefined;
 
   const metadata = {};
 
   // Parse name
-  const nameElement = metadataElement.getElementsByTagName('name')[0];
+  const nameElement = metadataElement.querySelectorAll('name')[0];
   if (nameElement) metadata.name = nameElement.textContent;
 
   // Parse description
-  const descElement = metadataElement.getElementsByTagName('desc')[0];
+  const descElement = metadataElement.querySelectorAll('desc')[0];
   if (descElement) metadata.description = descElement.textContent;
 
   // Parse author
-  const authorElement = metadataElement.getElementsByTagName('author')[0];
+  const authorElement = metadataElement.querySelectorAll('author')[0];
   if (authorElement) {
     metadata.author = {
-      name: authorElement.getElementsByTagName('name')[0]?.textContent,
-      email: authorElement.getElementsByTagName('email')[0]?.textContent,
-      link: authorElement.getElementsByTagName('link')[0]?.getAttribute('href'),
+      name: authorElement.querySelectorAll('name')[0]?.textContent,
+      email: authorElement.querySelectorAll('email')[0]?.textContent,
+      link: authorElement.querySelectorAll('link')[0]?.getAttribute('href'),
     };
   }
 
   // Parse time
-  const timeElement = metadataElement.getElementsByTagName('time')[0];
+  const timeElement = metadataElement.querySelectorAll('time')[0];
   if (timeElement) metadata.time = timeElement.textContent;
 
   return Object.keys(metadata).length > 0 ? metadata : undefined;
@@ -47,29 +47,28 @@ function parseGPXMetadata(gpxElement) {
  */
 function parseGPXWaypoints(gpxElement) {
   const waypoints = [];
-  const wptElements = gpxElement.getElementsByTagName('wpt');
+  const wptElements = gpxElement.querySelectorAll('wpt');
 
-  for (let i = 0; i < wptElements.length; i++) {
-    const wpt = wptElements[i];
+  for (const wpt of wptElements) {
     const waypoint = {
       lat: Number.parseFloat(wpt.getAttribute('lat')),
       lon: Number.parseFloat(wpt.getAttribute('lon')),
     };
 
     // Parse elevation
-    const eleElement = wpt.getElementsByTagName('ele')[0];
+    const eleElement = wpt.querySelectorAll('ele')[0];
     if (eleElement) waypoint.elevation = Number.parseFloat(eleElement.textContent);
 
     // Parse time
-    const timeElement = wpt.getElementsByTagName('time')[0];
+    const timeElement = wpt.querySelectorAll('time')[0];
     if (timeElement) waypoint.time = timeElement.textContent;
 
     // Parse name
-    const nameElement = wpt.getElementsByTagName('name')[0];
+    const nameElement = wpt.querySelectorAll('name')[0];
     if (nameElement) waypoint.name = nameElement.textContent;
 
     // Parse description
-    const descElement = wpt.getElementsByTagName('desc')[0];
+    const descElement = wpt.querySelectorAll('desc')[0];
     if (descElement) waypoint.description = descElement.textContent;
 
     waypoints.push(waypoint);
@@ -85,33 +84,31 @@ function parseGPXWaypoints(gpxElement) {
  */
 function parseGPXRoutes(gpxElement) {
   const routes = [];
-  const rteElements = gpxElement.getElementsByTagName('rte');
+  const rteElements = gpxElement.querySelectorAll('rte');
 
-  for (let i = 0; i < rteElements.length; i++) {
-    const rte = rteElements[i];
+  for (const rte of rteElements) {
     const route = {};
 
     // Parse name
-    const nameElement = rte.getElementsByTagName('name')[0];
+    const nameElement = rte.querySelectorAll('name')[0];
     if (nameElement) route.name = nameElement.textContent;
 
     // Parse description
-    const descElement = rte.getElementsByTagName('desc')[0];
+    const descElement = rte.querySelectorAll('desc')[0];
     if (descElement) route.description = descElement.textContent;
 
     // Parse route points
     const routePoints = [];
-    const rteptElements = rte.getElementsByTagName('rtept');
+    const rteptElements = rte.querySelectorAll('rtept');
 
-    for (let j = 0; j < rteptElements.length; j++) {
-      const rtept = rteptElements[j];
+    for (const rtept of rteptElements) {
       const point = {
         lat: Number.parseFloat(rtept.getAttribute('lat')),
         lon: Number.parseFloat(rtept.getAttribute('lon')),
       };
 
       // Parse elevation
-      const eleElement = rtept.getElementsByTagName('ele')[0];
+      const eleElement = rtept.querySelectorAll('ele')[0];
       if (eleElement) point.elevation = Number.parseFloat(eleElement.textContent);
 
       routePoints.push(point);
@@ -131,42 +128,39 @@ function parseGPXRoutes(gpxElement) {
  */
 function parseGPXTracks(gpxElement) {
   const tracks = [];
-  const trkElements = gpxElement.getElementsByTagName('trk');
+  const trkElements = gpxElement.querySelectorAll('trk');
 
-  for (let i = 0; i < trkElements.length; i++) {
-    const trk = trkElements[i];
+  for (const trk of trkElements) {
     const track = {};
 
     // Parse name
-    const nameElement = trk.getElementsByTagName('name')[0];
+    const nameElement = trk.querySelectorAll('name')[0];
     if (nameElement) track.name = nameElement.textContent;
 
     // Parse description
-    const descElement = trk.getElementsByTagName('desc')[0];
+    const descElement = trk.querySelectorAll('desc')[0];
     if (descElement) track.description = descElement.textContent;
 
     // Parse track segments
     const segments = [];
-    const trksegElements = trk.getElementsByTagName('trkseg');
+    const trksegElements = trk.querySelectorAll('trkseg');
 
-    for (let j = 0; j < trksegElements.length; j++) {
-      const trkseg = trksegElements[j];
+    for (const trkseg of trksegElements) {
       const segment = [];
-      const trkptElements = trkseg.getElementsByTagName('trkpt');
+      const trkptElements = trkseg.querySelectorAll('trkpt');
 
-      for (let k = 0; k < trkptElements.length; k++) {
-        const trkpt = trkptElements[k];
+      for (const trkpt of trkptElements) {
         const point = {
           lat: Number.parseFloat(trkpt.getAttribute('lat')),
           lon: Number.parseFloat(trkpt.getAttribute('lon')),
         };
 
         // Parse elevation
-        const eleElement = trkpt.getElementsByTagName('ele')[0];
+        const eleElement = trkpt.querySelectorAll('ele')[0];
         if (eleElement) point.elevation = Number.parseFloat(eleElement.textContent);
 
         // Parse time
-        const timeElement = trkpt.getElementsByTagName('time')[0];
+        const timeElement = trkpt.querySelectorAll('time')[0];
         if (timeElement) point.time = timeElement.textContent;
 
         segment.push(point);
@@ -212,12 +206,12 @@ const gpxAdapter = {
       const doc = parser.parseFromString(input, 'text/xml');
 
       // Check for parsing errors
-      const parseError = doc.getElementsByTagName('parsererror')[0];
+      const parseError = doc.querySelectorAll('parsererror')[0];
       if (parseError) {
         throw new Error(`GPX parsing error: ${parseError.textContent}`);
       }
 
-      const gpxElement = doc.getElementsByTagName('gpx')[0];
+      const gpxElement = doc.querySelectorAll('gpx')[0];
       if (!gpxElement) {
         throw new Error('Invalid GPX: root <gpx> element not found');
       }
@@ -303,17 +297,17 @@ const gpxAdapter = {
  * @returns {Object|null} Parsed document
  */
 function parseKMLDocument(kmlElement) {
-  const documentElement = kmlElement.getElementsByTagName('Document')[0];
+  const documentElement = kmlElement.querySelectorAll('Document')[0];
   if (!documentElement) return undefined;
 
   const document = {};
 
   // Parse name
-  const nameElement = documentElement.getElementsByTagName('name')[0];
+  const nameElement = documentElement.querySelectorAll('name')[0];
   if (nameElement) document.name = nameElement.textContent;
 
   // Parse description
-  const descElement = documentElement.getElementsByTagName('description')[0];
+  const descElement = documentElement.querySelectorAll('description')[0];
   if (descElement) document.description = descElement.textContent;
 
   // Parse styles
@@ -338,28 +332,27 @@ function parseKMLDocument(kmlElement) {
  */
 function parseKMLStyles(documentElement) {
   const styles = [];
-  const styleElements = documentElement.getElementsByTagName('Style');
+  const styleElements = documentElement.querySelectorAll('Style');
 
-  for (let i = 0; i < styleElements.length; i++) {
-    const style = styleElements[i];
+  for (const style of styleElements) {
     const styleObj = {
       id: style.getAttribute('id'),
     };
 
     // Parse IconStyle
-    const iconStyle = style.getElementsByTagName('IconStyle')[0];
+    const iconStyle = style.querySelectorAll('IconStyle')[0];
     if (iconStyle) {
       styleObj.iconStyle = parseKMLIconStyle(iconStyle);
     }
 
     // Parse LineStyle
-    const lineStyle = style.getElementsByTagName('LineStyle')[0];
+    const lineStyle = style.querySelectorAll('LineStyle')[0];
     if (lineStyle) {
       styleObj.lineStyle = parseKMLLineStyle(lineStyle);
     }
 
     // Parse PolyStyle
-    const polyStyle = style.getElementsByTagName('PolyStyle')[0];
+    const polyStyle = style.querySelectorAll('PolyStyle')[0];
     if (polyStyle) {
       styleObj.polyStyle = parseKMLPolyStyle(polyStyle);
     }
@@ -379,17 +372,17 @@ function parseKMLIconStyle(iconStyleElement) {
   const iconStyle = {};
 
   // Parse color
-  const colorElement = iconStyleElement.getElementsByTagName('color')[0];
+  const colorElement = iconStyleElement.querySelectorAll('color')[0];
   if (colorElement) iconStyle.color = colorElement.textContent;
 
   // Parse scale
-  const scaleElement = iconStyleElement.getElementsByTagName('scale')[0];
+  const scaleElement = iconStyleElement.querySelectorAll('scale')[0];
   if (scaleElement) iconStyle.scale = Number.parseFloat(scaleElement.textContent);
 
   // Parse icon
-  const iconElement = iconStyleElement.getElementsByTagName('Icon')[0];
+  const iconElement = iconStyleElement.querySelectorAll('Icon')[0];
   if (iconElement) {
-    const hrefElement = iconElement.getElementsByTagName('href')[0];
+    const hrefElement = iconElement.querySelectorAll('href')[0];
     if (hrefElement) iconStyle.href = hrefElement.textContent;
   }
 
@@ -405,11 +398,11 @@ function parseKMLLineStyle(lineStyleElement) {
   const lineStyle = {};
 
   // Parse color
-  const colorElement = lineStyleElement.getElementsByTagName('color')[0];
+  const colorElement = lineStyleElement.querySelectorAll('color')[0];
   if (colorElement) lineStyle.color = colorElement.textContent;
 
   // Parse width
-  const widthElement = lineStyleElement.getElementsByTagName('width')[0];
+  const widthElement = lineStyleElement.querySelectorAll('width')[0];
   if (widthElement) lineStyle.width = Number.parseFloat(widthElement.textContent);
 
   return lineStyle;
@@ -424,15 +417,15 @@ function parseKMLPolyStyle(polyStyleElement) {
   const polyStyle = {};
 
   // Parse color
-  const colorElement = polyStyleElement.getElementsByTagName('color')[0];
+  const colorElement = polyStyleElement.querySelectorAll('color')[0];
   if (colorElement) polyStyle.color = colorElement.textContent;
 
   // Parse fill
-  const fillElement = polyStyleElement.getElementsByTagName('fill')[0];
+  const fillElement = polyStyleElement.querySelectorAll('fill')[0];
   if (fillElement) polyStyle.fill = fillElement.textContent === '1';
 
   // Parse outline
-  const outlineElement = polyStyleElement.getElementsByTagName('outline')[0];
+  const outlineElement = polyStyleElement.querySelectorAll('outline')[0];
   if (outlineElement) polyStyle.outline = outlineElement.textContent === '1';
 
   return polyStyle;
@@ -445,22 +438,21 @@ function parseKMLPolyStyle(polyStyleElement) {
  */
 function parseKMLPlacemarks(documentElement) {
   const placemarks = [];
-  const placemarkElements = documentElement.getElementsByTagName('Placemark');
+  const placemarkElements = documentElement.querySelectorAll('Placemark');
 
-  for (let i = 0; i < placemarkElements.length; i++) {
-    const placemark = placemarkElements[i];
+  for (const placemark of placemarkElements) {
     const placemarkObj = {};
 
     // Parse name
-    const nameElement = placemark.getElementsByTagName('name')[0];
+    const nameElement = placemark.querySelectorAll('name')[0];
     if (nameElement) placemarkObj.name = nameElement.textContent;
 
     // Parse description
-    const descElement = placemark.getElementsByTagName('description')[0];
+    const descElement = placemark.querySelectorAll('description')[0];
     if (descElement) placemarkObj.description = descElement.textContent;
 
     // Parse styleUrl
-    const styleUrlElement = placemark.getElementsByTagName('styleUrl')[0];
+    const styleUrlElement = placemark.querySelectorAll('styleUrl')[0];
     if (styleUrlElement) placemarkObj.styleUrl = styleUrlElement.textContent;
 
     // Parse geometry
@@ -480,9 +472,9 @@ function parseKMLPlacemarks(documentElement) {
  */
 function parseKMLGeometry(placemarkElement) {
   // Parse Point
-  const pointElement = placemarkElement.getElementsByTagName('Point')[0];
+  const pointElement = placemarkElement.querySelectorAll('Point')[0];
   if (pointElement) {
-    const coordinatesElement = pointElement.getElementsByTagName('coordinates')[0];
+    const coordinatesElement = pointElement.querySelectorAll('coordinates')[0];
     if (coordinatesElement) {
       const coords = coordinatesElement.textContent.trim().split(',');
       return {
@@ -497,9 +489,9 @@ function parseKMLGeometry(placemarkElement) {
   }
 
   // Parse LineString
-  const lineStringElement = placemarkElement.getElementsByTagName('LineString')[0];
+  const lineStringElement = placemarkElement.querySelectorAll('LineString')[0];
   if (lineStringElement) {
-    const coordinatesElement = lineStringElement.getElementsByTagName('coordinates')[0];
+    const coordinatesElement = lineStringElement.querySelectorAll('coordinates')[0];
     if (coordinatesElement) {
       const coords = coordinatesElement.textContent.trim().split(/\s+/);
       const coordinates = coords.map(coord => {
@@ -518,11 +510,11 @@ function parseKMLGeometry(placemarkElement) {
   }
 
   // Parse Polygon
-  const polygonElement = placemarkElement.getElementsByTagName('Polygon')[0];
+  const polygonElement = placemarkElement.querySelectorAll('Polygon')[0];
   if (polygonElement) {
-    const outerBoundaryElement = polygonElement.getElementsByTagName('outerBoundaryIs')[0];
+    const outerBoundaryElement = polygonElement.querySelectorAll('outerBoundaryIs')[0];
     if (outerBoundaryElement) {
-      const coordinatesElement = outerBoundaryElement.getElementsByTagName('coordinates')[0];
+      const coordinatesElement = outerBoundaryElement.querySelectorAll('coordinates')[0];
       if (coordinatesElement) {
         const coords = coordinatesElement.textContent.trim().split(/\s+/);
         const coordinates = coords.map(coord => {
@@ -551,18 +543,17 @@ function parseKMLGeometry(placemarkElement) {
  */
 function parseKMLFolders(documentElement) {
   const folders = [];
-  const folderElements = documentElement.getElementsByTagName('Folder');
+  const folderElements = documentElement.querySelectorAll('Folder');
 
-  for (let i = 0; i < folderElements.length; i++) {
-    const folder = folderElements[i];
+  for (const folder of folderElements) {
     const folderObj = {};
 
     // Parse name
-    const nameElement = folder.getElementsByTagName('name')[0];
+    const nameElement = folder.querySelectorAll('name')[0];
     if (nameElement) folderObj.name = nameElement.textContent;
 
     // Parse description
-    const descElement = folder.getElementsByTagName('description')[0];
+    const descElement = folder.querySelectorAll('description')[0];
     if (descElement) folderObj.description = descElement.textContent;
 
     // Parse placemarks within folder
@@ -581,7 +572,7 @@ function parseKMLFolders(documentElement) {
  * @returns {number} Number of placemarks
  */
 function countKMLPlacemarks(kmlElement) {
-  return kmlElement.getElementsByTagName('Placemark').length;
+  return kmlElement.querySelectorAll('Placemark').length;
 }
 
 /**
@@ -614,16 +605,16 @@ const kmlAdapter = {
       const doc = parser.parseFromString(input, 'text/xml');
 
       // Check for parsing errors
-      const parseError = doc.getElementsByTagName('parsererror')[0];
+      const parseError = doc.querySelectorAll('parsererror')[0];
       if (parseError) {
         throw new Error(`KML parsing error: ${parseError.textContent}`);
       }
 
       // Handle both KML and KMZ (compressed KML)
-      let kmlElement = doc.getElementsByTagName('kml')[0];
+      let kmlElement = doc.querySelectorAll('kml')[0];
       if (!kmlElement) {
         // Try to find Document element directly
-        const documentElement = doc.getElementsByTagName('Document')[0];
+        const documentElement = doc.querySelectorAll('Document')[0];
         if (documentElement) {
           kmlElement = documentElement.parentNode;
         }
@@ -829,9 +820,9 @@ const topojsonAdapter = {
           geometries:
             object.geometry?.type === 'GeometryCollection'
               ? object.geometry.geometries
-              : object.geometry
+              : (object.geometry
                 ? [object.geometry]
-                : undefined,
+                : undefined),
         };
       }
 

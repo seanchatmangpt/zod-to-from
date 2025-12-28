@@ -4,6 +4,7 @@
  */
 
 import { getAdapter, createProvenance, simpleHash, deterministicStringify } from './registry.mjs';
+import { applyTransform } from './transforms.mjs';
 
 /**
  * @typedef {import('zod').ZodSchema} ZodSchema
@@ -34,8 +35,18 @@ export async function parseFrom(schema, format, input, opts = {}) {
   // Parse using the adapter
   const result = await adapter.parse(input, opts.adapter || {});
 
+  // Apply transforms if specified
+  let processedData = result.data;
+  if (opts.transform) {
+    const transformResult = await applyTransform(processedData, opts.transform);
+    if (transformResult.errors && transformResult.errors.length > 0) {
+      console.warn('Transform warnings:', transformResult.errors);
+    }
+    processedData = transformResult.data;
+  }
+
   // Validate against schema
-  const validatedData = schema.parse(result.data);
+  const validatedData = schema.parse(processedData);
 
   // Return result with or without provenance
   if (opts.includeProvenance) {
@@ -73,8 +84,18 @@ export async function formatTo(schema, format, data, opts = {}) {
   // Validate data against schema
   const validatedData = schema.parse(data);
 
+  // Apply transforms if specified
+  let processedData = validatedData;
+  if (opts.transform) {
+    const transformResult = await applyTransform(processedData, opts.transform);
+    if (transformResult.errors && transformResult.errors.length > 0) {
+      console.warn('Transform warnings:', transformResult.errors);
+    }
+    processedData = transformResult.data;
+  }
+
   // Format using the adapter
-  const result = await adapter.format(validatedData, opts.adapter || {});
+  const result = await adapter.format(processedData, opts.adapter || {});
 
   // Apply deterministic formatting if requested
   let formattedOutput = result.data;
