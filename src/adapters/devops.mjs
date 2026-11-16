@@ -2,11 +2,110 @@
  * @typedef {import('../core/registry.mjs').Adapter} Adapter
  */
 
+import { z } from 'zod';
 import { createPackManifest, registerPack } from '../core/index.mjs';
+
+// ============================================================================
+// Zod Validation Schemas (80/20 Rule: Common Fields & Patterns)
+// ============================================================================
+
+// Docker Compose Schema - covers ~80% of common use cases
+const dockerComposeServiceSchema = z.object({
+  image: z.string().optional(),
+  build: z.union([
+    z.string(),
+    z.object({
+      context: z.string().optional(),
+      dockerfile: z.string().optional(),
+      args: z.record(z.string()).optional(),
+    })
+  ]).optional(),
+  ports: z.array(z.union([z.string(), z.number()])).optional(),
+  environment: z.union([
+    z.record(z.union([z.string(), z.number(), z.boolean()])),
+    z.array(z.string())
+  ]).optional(),
+  volumes: z.array(z.string()).optional(),
+  depends_on: z.union([
+    z.array(z.string()),
+    z.record(z.object({
+      condition: z.string().optional()
+    }))
+  ]).optional(),
+  command: z.union([z.string(), z.array(z.string())]).optional(),
+  networks: z.union([z.array(z.string()), z.record(z.object({}))]).optional(),
+  restart: z.enum(['no', 'always', 'on-failure', 'unless-stopped']).optional(),
+  healthcheck: z.object({
+    test: z.union([z.string(), z.array(z.string())]).optional(),
+    interval: z.string().optional(),
+    timeout: z.string().optional(),
+    retries: z.number().optional(),
+  }).optional(),
+}).passthrough(); // Allow additional fields
+
+const dockerComposeSchema = z.object({
+  version: z.string().optional(),
+  services: z.record(dockerComposeServiceSchema).optional(),
+  networks: z.record(z.object({}).passthrough()).optional(),
+  volumes: z.record(z.object({}).passthrough()).optional(),
+}).passthrough();
+
+// Kubernetes Schema - covers ~80% of common resources
+const k8sMetadataSchema = z.object({
+  name: z.string(),
+  namespace: z.string().optional(),
+  labels: z.record(z.string()).optional(),
+  annotations: z.record(z.string()).optional(),
+}).passthrough();
+
+const k8sContainerSchema = z.object({
+  name: z.string(),
+  image: z.string(),
+  ports: z.array(z.object({
+    containerPort: z.number(),
+    protocol: z.enum(['TCP', 'UDP']).optional(),
+  }).passthrough()).optional(),
+  env: z.array(z.object({
+    name: z.string(),
+    value: z.string().optional(),
+    valueFrom: z.object({}).passthrough().optional(),
+  }).passthrough()).optional(),
+  volumeMounts: z.array(z.object({
+    name: z.string(),
+    mountPath: z.string(),
+  }).passthrough()).optional(),
+  resources: z.object({
+    limits: z.record(z.string()).optional(),
+    requests: z.record(z.string()).optional(),
+  }).optional(),
+}).passthrough();
+
+const k8sSchema = z.object({
+  apiVersion: z.string(),
+  kind: z.string(),
+  metadata: k8sMetadataSchema,
+  spec: z.object({}).passthrough().optional(),
+  status: z.object({}).passthrough().optional(),
+}).passthrough();
+
+// Terraform HCL Schema - basic structure validation
+const terraformBlockSchema = z.object({
+  type: z.string(),
+  labels: z.array(z.string()).optional(),
+  body: z.array(z.any()).optional(),
+}).passthrough();
+
+const terraformSchema = z.object({
+  body: z.array(terraformBlockSchema).optional(),
+}).passthrough();
+
+// ============================================================================
+// Docker Compose Adapter
+// ============================================================================
 
 /**
  * Docker Compose adapter for parsing and formatting docker-compose.yml files
- * Uses js-yaml library for YAML processing
+ * Uses js-yaml library for YAML processing with Zod schema validation
  */
 const composeAdapter = {
   async parse(input, opts = {}) {
@@ -14,7 +113,7 @@ const composeAdapter = {
       // Dynamic import to handle optional dependency
       const yaml = await import('js-yaml');
 
-      const { schema = yaml.DEFAULT_SCHEMA, json = false, ...otherOpts } = opts;
+      const { schema = yaml.DEFAULT_SCHEMA, json = false, validate = true, ...otherOpts } = opts;
 
       const parseOptions = {
         schema,
@@ -23,6 +122,57 @@ const composeAdapter = {
       };
 
       const data = yaml.load(input, parseOptions);
+
+      // Schema validation (enabled by default)
+      if (validate) {
+        const result = dockerComposeSchema.safeParse(data);
+        if (!result.success) {
+          const errors = result.error.errors.map(e => `${e.path.join('.')}: ${e.message}`).join(', ');
+          throw new Error(`Invalid Docker Compose structure: ${errors}`);
+        }
+
+        // Security checks for common issues
+        const securityIssues = [];
+
+        if (data.services) {
+          for (const [serviceName, service] of Object.entries(data.services)) {
+            // Check for exposed privileged ports
+            if (service.ports) {
+              const privilegedPorts = service.ports
+                .map(p => typeof p === 'string' ? p.split(':')[0] : p)
+                .filter(p => [22, 23, 3306, 5432, 6379, 27_017].includes(Number(p)));
+
+              if (privilegedPorts.length > 0) {
+                securityIssues.push(`Service '${serviceName}' exposes privileged ports: ${privilegedPorts.join(', ')}`);
+              }
+            }
+
+            // Check for environment variables that might contain secrets
+            if (service.environment) {
+              const envVars = Array.isArray(service.environment)
+                ? service.environment
+                : Object.keys(service.environment);
+
+              const suspiciousVars = envVars.filter(v =>
+                /password|secret|token|key|api[_-]?key/i.test(typeof v === 'string' ? v : v)
+              );
+
+              if (suspiciousVars.length > 0) {
+                securityIssues.push(`Service '${serviceName}' may contain hardcoded secrets in environment variables`);
+              }
+            }
+
+            // Validate service has either image or build
+            if (!service.image && !service.build) {
+              throw new Error(`Service '${serviceName}' must specify either 'image' or 'build'`);
+            }
+          }
+        }
+
+        if (securityIssues.length > 0 && opts.strict) {
+          throw new Error(`Security issues detected: ${securityIssues.join('; ')}`);
+        }
+      }
 
       // Validate and enhance Docker Compose structure
       const enhancedData = {
@@ -105,6 +255,10 @@ const composeAdapter = {
   isAI: false,
   version: '1.0.0',
 };
+
+// ============================================================================
+// Dockerfile Adapter
+// ============================================================================
 
 /**
  * Dockerfile adapter for parsing and formatting Dockerfile content
@@ -219,6 +373,10 @@ const dockerfileAdapter = {
   version: '1.0.0',
 };
 
+// ============================================================================
+// Environment Variables Adapter
+// ============================================================================
+
 /**
  * Environment variables adapter for parsing and formatting .env files
  */
@@ -316,6 +474,10 @@ const envAdapter = {
   version: '1.0.0',
 };
 
+// ============================================================================
+// INI Adapter
+// ============================================================================
+
 /**
  * INI adapter for parsing and formatting INI files
  * Uses ini library for INI processing
@@ -388,9 +550,13 @@ const iniAdapter = {
   version: '1.0.0',
 };
 
+// ============================================================================
+// Kubernetes Adapter
+// ============================================================================
+
 /**
  * Kubernetes YAML adapter for parsing and formatting Kubernetes manifests
- * Uses js-yaml library for YAML processing with Kubernetes-specific enhancements
+ * Uses js-yaml library for YAML processing with Kubernetes-specific enhancements and Zod validation
  */
 const k8sAdapter = {
   async parse(input, opts = {}) {
@@ -398,7 +564,7 @@ const k8sAdapter = {
       // Dynamic import to handle optional dependency
       const yaml = await import('js-yaml');
 
-      const { schema = yaml.DEFAULT_SCHEMA, json = false, ...otherOpts } = opts;
+      const { schema = yaml.DEFAULT_SCHEMA, json = false, validate = true, ...otherOpts } = opts;
 
       const parseOptions = {
         schema,
@@ -407,6 +573,61 @@ const k8sAdapter = {
       };
 
       const data = yaml.load(input, parseOptions);
+
+      // Schema validation (enabled by default)
+      if (validate) {
+        const result = k8sSchema.safeParse(data);
+        if (!result.success) {
+          const errors = result.error.errors.map(e => `${e.path.join('.')}: ${e.message}`).join(', ');
+          throw new Error(`Invalid Kubernetes manifest: ${errors}`);
+        }
+
+        // Kubernetes-specific validations
+        const validKinds = [
+          'Pod', 'Deployment', 'Service', 'ConfigMap', 'Secret',
+          'StatefulSet', 'DaemonSet', 'Job', 'CronJob', 'Ingress',
+          'PersistentVolume', 'PersistentVolumeClaim', 'Namespace',
+          'ServiceAccount', 'Role', 'RoleBinding', 'ClusterRole', 'ClusterRoleBinding'
+        ];
+
+        if (!validKinds.includes(data.kind)) {
+          throw new Error(`Unknown Kubernetes kind: ${data.kind}. Expected one of: ${validKinds.join(', ')}`);
+        }
+
+        // Validate apiVersion format
+        if (!/^[a-z0-9]+(\.[a-z0-9]+)*\/v[0-9]+(alpha|beta)?[0-9]*$|^v[0-9]+$/.test(data.apiVersion)) {
+          throw new Error(`Invalid apiVersion format: ${data.apiVersion}`);
+        }
+
+        // Security checks for Pods and Deployments
+        if (['Pod', 'Deployment', 'StatefulSet', 'DaemonSet'].includes(data.kind)) {
+          const podSpec = data.kind === 'Pod' ? data.spec : data.spec?.template?.spec;
+          const securityIssues = [];
+
+          if (podSpec?.containers) {
+            for (const container of podSpec.containers) {
+              // Check for latest tag
+              if (container.image?.endsWith(':latest')) {
+                securityIssues.push(`Container '${container.name}' uses :latest tag, which is not recommended for production`);
+              }
+
+              // Check for privileged mode
+              if (container.securityContext?.privileged) {
+                securityIssues.push(`Container '${container.name}' runs in privileged mode`);
+              }
+
+              // Check for missing resource limits
+              if (!container.resources?.limits) {
+                securityIssues.push(`Container '${container.name}' missing resource limits`);
+              }
+            }
+          }
+
+          if (securityIssues.length > 0 && opts.strict) {
+            throw new Error(`Security/best practice issues detected: ${securityIssues.join('; ')}`);
+          }
+        }
+      }
 
       // Enhance Kubernetes manifest with metadata
       const enhancedData = {
@@ -489,9 +710,13 @@ const k8sAdapter = {
   version: '1.0.0',
 };
 
+// ============================================================================
+// Terraform HCL Adapter
+// ============================================================================
+
 /**
  * Terraform HCL adapter for parsing and formatting Terraform configuration files
- * Uses hcl2-parser library for HCL processing
+ * Uses hcl2-parser library for HCL processing with Zod schema validation
  */
 const terraformHclAdapter = {
   async parse(input, opts = {}) {
@@ -499,7 +724,7 @@ const terraformHclAdapter = {
       // Dynamic import to handle optional dependency
       const { parse } = await import('hcl2-parser');
 
-      const { withSourceMap = false, ...otherOpts } = opts;
+      const { withSourceMap = false, validate = true, ...otherOpts } = opts;
 
       const parseOptions = {
         withSourceMap,
@@ -507,6 +732,73 @@ const terraformHclAdapter = {
       };
 
       const ast = parse(input, parseOptions);
+
+      // Schema validation (enabled by default)
+      if (validate) {
+        const result = terraformSchema.safeParse(ast);
+        if (!result.success) {
+          const errors = result.error.errors.map(e => `${e.path.join('.')}: ${e.message}`).join(', ');
+          throw new Error(`Invalid Terraform HCL structure: ${errors}`);
+        }
+
+        // Terraform-specific validations
+        const validBlockTypes = new Set([
+          'terraform', 'provider', 'resource', 'data', 'variable',
+          'output', 'locals', 'module', 'terraform_provider'
+        ]);
+
+        const issues = [];
+
+        if (ast.body) {
+          for (const block of ast.body) {
+            // Check for valid block types
+            if (!validBlockTypes.has(block.type)) {
+              issues.push(`Unknown Terraform block type: ${block.type}`);
+            }
+
+            // Resource blocks should have 2 labels (type and name)
+            if (block.type === 'resource' && (!block.labels || block.labels.length !== 2)) {
+              issues.push(`Resource block must have exactly 2 labels (type and name)`);
+            }
+
+            // Data blocks should have 2 labels (type and name)
+            if (block.type === 'data' && (!block.labels || block.labels.length !== 2)) {
+              issues.push(`Data block must have exactly 2 labels (type and name)`);
+            }
+
+            // Variable blocks should have 1 label (name)
+            if (block.type === 'variable' && (!block.labels || block.labels.length !== 1)) {
+              issues.push(`Variable block must have exactly 1 label (name)`);
+            }
+
+            // Output blocks should have 1 label (name)
+            if (block.type === 'output' && (!block.labels || block.labels.length !== 1)) {
+              issues.push(`Output block must have exactly 1 label (name)`);
+            }
+          }
+        }
+
+        // Security checks
+        const resources = ast.body?.filter(b => b.type === 'resource') || [];
+
+        for (const resource of resources) {
+          const [resourceType] = resource.labels || [];
+
+          // Check for publicly accessible resources
+          if (resourceType?.includes('security_group') || resourceType?.includes('firewall')) {
+            issues.push(`Security group/firewall resource detected - ensure proper ingress rules`);
+          }
+
+          // Check for unencrypted storage
+          if (resourceType?.includes('bucket') || resourceType?.includes('storage')) {
+            issues.push(`Storage resource detected - ensure encryption is enabled`);
+          }
+        }
+
+        if (issues.length > 0 && opts.strict) {
+          throw new Error(`Terraform validation issues: ${issues.join('; ')}`);
+        }
+      }
 
       // Transform AST into a more usable format
       const data = {
@@ -586,15 +878,19 @@ const terraformHclAdapter = {
   version: '1.0.0',
 };
 
+// ============================================================================
+// TOML Adapter
+// ============================================================================
+
 /**
  * TOML adapter for parsing and formatting TOML files
- * Uses toml library for TOML processing
+ * Uses @iarna/toml library for robust TOML processing with both parsing and stringifying
  */
 const tomlAdapter = {
   async parse(input, opts = {}) {
     try {
       // Dynamic import to handle optional dependency
-      const toml = await import('toml');
+      const toml = await import('@iarna/toml');
 
       const data = toml.parse(input);
 
@@ -608,7 +904,9 @@ const tomlAdapter = {
       };
     } catch (error) {
       if (error.code === 'MODULE_NOT_FOUND') {
-        throw new Error('TOML support requires toml library. Install with: pnpm add toml');
+        throw new Error(
+          'TOML support requires @iarna/toml library. Install with: pnpm add @iarna/toml'
+        );
       }
       throw new Error(`TOML parsing failed: ${error.message}`);
     }
@@ -617,36 +915,10 @@ const tomlAdapter = {
   async format(data, opts = {}) {
     try {
       // Dynamic import to handle optional dependency
-      const toml = await import('toml');
+      const toml = await import('@iarna/toml');
 
-      // The toml library only provides parsing, not stringifying
-      // For now, we'll use a simple JSON.stringify approach
-      // In a production environment, you might want to use a different library like @iarna/toml
-      const { indent = 2, ...otherOpts } = opts;
-
-      // Simple TOML-like formatting (basic implementation)
-      const formatValue = (value, indentLevel = 0) => {
-        const spaces = '  '.repeat(indentLevel);
-
-        if (typeof value === 'string') {
-          return `"${value.replace(/"/g, String.raw`\"`)}"`;
-        } else if (typeof value === 'number') {
-          return value.toString();
-        } else if (typeof value === 'boolean') {
-          return value.toString();
-        } else if (Array.isArray(value)) {
-          return `[${value.map(v => formatValue(v)).join(', ')}]`;
-        } else if (typeof value === 'object' && value !== null) {
-          const lines = [];
-          for (const [key, val] of Object.entries(value)) {
-            lines.push(`${spaces}${key} = ${formatValue(val, indentLevel + 1)}`);
-          }
-          return lines.join('\n');
-        }
-        return String(value);
-      };
-
-      const tomlString = formatValue(data);
+      // @iarna/toml provides proper stringification with TOML v1.0.0 compliance
+      const tomlString = toml.stringify(data);
 
       return {
         data: tomlString,
@@ -658,7 +930,9 @@ const tomlAdapter = {
       };
     } catch (error) {
       if (error.code === 'MODULE_NOT_FOUND') {
-        throw new Error('TOML support requires toml library. Install with: pnpm add toml');
+        throw new Error(
+          'TOML support requires @iarna/toml library. Install with: pnpm add @iarna/toml'
+        );
       }
       throw new Error(`TOML formatting failed: ${error.message}`);
     }
@@ -668,6 +942,10 @@ const tomlAdapter = {
   isAI: false,
   version: '1.0.0',
 };
+
+// ============================================================================
+// YAML Adapter
+// ============================================================================
 
 /**
  * YAML adapter for parsing and formatting YAML files
@@ -742,6 +1020,10 @@ const yamlAdapter = {
   isAI: false,
   version: '1.0.0',
 };
+
+// ============================================================================
+// Pack Registration
+// ============================================================================
 
 // Create pack manifest
 const packManifest = createPackManifest(

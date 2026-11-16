@@ -647,7 +647,7 @@ const vcardAdapter = {
       const lines = input
         .split('\n')
         .map(line => line.trim())
-        .filter(line => line);
+        .filter(Boolean);
       const result = {
         version: '4.0',
         fn: '',
@@ -691,11 +691,11 @@ const vcardAdapter = {
       // Parse vCard properties
       for (const line of lines) {
         if (line.startsWith('VERSION:')) {
-          result.version = line.substring(8);
+          result.version = line.slice(8);
         } else if (line.startsWith('FN:')) {
-          result.fn = line.substring(3);
+          result.fn = line.slice(3);
         } else if (line.startsWith('N:')) {
-          const nameParts = line.substring(2).split(';');
+          const nameParts = line.slice(2).split(';');
           result.n = {
             family: nameParts[0] || '',
             given: nameParts[1] || '',
@@ -704,17 +704,17 @@ const vcardAdapter = {
             suffix: nameParts[4] || '',
           };
         } else if (line.startsWith('EMAIL:')) {
-          result.email.push({ value: line.substring(6) });
+          result.email.push({ value: line.slice(6) });
         } else if (line.startsWith('TEL:')) {
-          result.tel.push({ value: line.substring(4) });
+          result.tel.push({ value: line.slice(4) });
         } else if (line.startsWith('ORG:')) {
-          result.org = line.substring(4);
+          result.org = line.slice(4);
         } else if (line.startsWith('TITLE:')) {
-          result.title = line.substring(6);
+          result.title = line.slice(6);
         } else if (line.startsWith('URL:')) {
-          result.url = line.substring(4);
+          result.url = line.slice(4);
         } else if (line.startsWith('NOTE:')) {
-          result.note = line.substring(5);
+          result.note = line.slice(5);
         }
       }
 

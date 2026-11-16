@@ -253,19 +253,151 @@ const plantumlAdapter = {
 };
 
 /**
- * RDF/XML adapter placeholder
- * Note: Would require rdfxml-streaming-parser library
+ * RDF/XML adapter - lightweight implementation for common patterns
+ * Handles basic RDF/XML parsing and formatting without external dependencies
+ *
+ * Supports:
+ * - rdf:Description elements with rdf:about attributes
+ * - Predicate properties with rdf:resource (URI refs) or text (literals)
+ * - Basic namespace handling
+ *
+ * Limitations:
+ * - No support for rdf:parseType="Collection" or complex structures
+ * - No support for rdf:nodeID (blank nodes with explicit IDs)
+ * - Limited datatype handling for literals
  */
 const rdfxmlAdapter = {
   async parse(input, opts = {}) {
-    throw new Error('RDF/XML support requires additional dependencies (rdfxml-streaming-parser)');
+    try {
+      // Basic XML parsing using regex patterns (80/20 approach)
+      const triples = [];
+
+      // Extract namespace declarations from rdf:RDF root
+      const nsMatches = input.matchAll(/xmlns:(\w+)="([^"]+)"/g);
+      const namespaces = {};
+      for (const match of nsMatches) {
+        namespaces[match[1]] = match[2];
+      }
+
+      // Find all rdf:Description blocks
+      const descriptionRegex = /<rdf:Description[^>]*rdf:about="([^"]+)"[^>]*>([\s\S]*?)<\/rdf:Description>/g;
+      const descriptions = [...input.matchAll(descriptionRegex)];
+
+      for (const [, subject, content] of descriptions) {
+        // Extract predicates from the description content
+        const predicateRegex = /<(\w+):(\w+)(?:\s+rdf:resource="([^"]+)"|[^>]*>([^<]+)<\/\w+:\w+>)/g;
+        const predicates = [...content.matchAll(predicateRegex)];
+
+        for (const [, ns, prop, resource, literal] of predicates) {
+          const predicateUri = namespaces[ns]
+            ? `${namespaces[ns]}${prop}`
+            : `${ns}:${prop}`;
+
+          triples.push({
+            subject: subject,
+            predicate: predicateUri,
+            object: resource || literal.trim(),
+            objectType: resource ? 'uri' : 'literal'
+          });
+        }
+      }
+
+      return {
+        data: triples,
+        metadata: {
+          format: 'rdfxml',
+          tripleCount: triples.length,
+          namespaces,
+          ...opts,
+        },
+      };
+    } catch (error) {
+      throw new Error(`Invalid RDF/XML: ${error.message}`);
+    }
   },
 
   async format(data, opts = {}) {
-    throw new Error('RDF/XML support requires additional dependencies (rdfxml-streaming-parser)');
+    try {
+      const {
+        namespaces = {
+          rdf: 'http://www.w3.org/1999/02/22-rdf-syntax-ns#',
+          rdfs: 'http://www.w3.org/2000/01/rdf-schema#'
+        },
+        baseUri = ''
+      } = opts;
+
+      // Group triples by subject
+      const subjectMap = new Map();
+      for (const triple of data) {
+        const subject = triple.subject || triple.s;
+        if (!subjectMap.has(subject)) {
+          subjectMap.set(subject, []);
+        }
+        subjectMap.get(subject).push(triple);
+      }
+
+      // Build namespace declarations
+      const nsDeclarations = Object.entries(namespaces)
+        .map(([prefix, uri]) => `xmlns:${prefix}="${uri}"`)
+        .join('\n    ');
+
+      // Build RDF/XML
+      let rdfxml = `<?xml version="1.0" encoding="UTF-8"?>\n`;
+      rdfxml += `<rdf:RDF\n    ${nsDeclarations}>\n`;
+
+      for (const [subject, triples] of subjectMap) {
+        rdfxml += `  <rdf:Description rdf:about="${subject}">\n`;
+
+        for (const triple of triples) {
+          const predicate = triple.predicate || triple.p;
+          const object = triple.object || triple.o;
+          const objectType = triple.objectType ||
+            (object.startsWith('http://') || object.startsWith('https://') ? 'uri' : 'literal');
+
+          // Extract namespace prefix from predicate URI
+          let predicateTag = predicate;
+          for (const [prefix, uri] of Object.entries(namespaces)) {
+            if (predicate.startsWith(uri)) {
+              predicateTag = `${prefix}:${predicate.slice(uri.length)}`;
+              break;
+            }
+          }
+
+          // Format based on object type
+          if (objectType === 'uri') {
+            rdfxml += `    <${predicateTag} rdf:resource="${object}"/>\n`;
+          } else {
+            // Escape XML special characters in literals
+            const escapedObject = object
+              .replace(/&/g, '&amp;')
+              .replace(/</g, '&lt;')
+              .replace(/>/g, '&gt;')
+              .replace(/"/g, '&quot;');
+            rdfxml += `    <${predicateTag}>${escapedObject}</${predicateTag}>\n`;
+          }
+        }
+
+        rdfxml += `  </rdf:Description>\n`;
+      }
+
+      rdfxml += `</rdf:RDF>`;
+
+      return {
+        data: rdfxml,
+        metadata: {
+          format: 'rdfxml',
+          outputSize: rdfxml.length,
+          tripleCount: data.length,
+          subjectCount: subjectMap.size,
+          ...opts,
+        },
+      };
+    } catch (error) {
+      throw new Error(`RDF/XML formatting failed: ${error.message}`);
+    }
   },
 
-  supportsStreaming: true,
+  supportsStreaming: false,
   isAI: false,
   version: '1.0.0',
 };

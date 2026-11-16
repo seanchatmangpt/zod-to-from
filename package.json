@@ -53,10 +53,12 @@
     "zod": "^3.23.8"
   },
   "optionalDependencies": {
+    "@iarna/toml": "^3.0.0",
     "@msgpack/msgpack": "^3.0.0",
     "apache-arrow": "^15.0.0",
     "avsc": "^5.7.7",
     "better-sqlite3": "^11.6.0",
+    "cheerio": "^1.0.0",
     "docker-file-parser": "^2.0.1",
     "docxtemplater": "^3.47.0",
     "exceljs": "^4.4.0",
@@ -68,6 +70,7 @@
     "js-yaml": "^4.1.0",
     "jszip": "^3.10.1",
     "mammoth": "^1.6.0",
+    "marked": "^14.1.4",
     "node-id3": "^0.2.6",
     "nunjucks": "^3.2.4",
     "parquets": "^0.1.0",
@@ -80,7 +83,6 @@
     "puppeteer": "^21.11.0",
     "rdfxml-streaming-parser": "^0.1.0",
     "tar-stream": "^3.1.7",
-    "toml": "^3.0.0",
     "topojson-client": "^3.1.0",
     "vcard4": "^0.1.0",
     "wellknown": "^0.5.0",

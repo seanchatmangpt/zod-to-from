@@ -50,75 +50,101 @@ const csvAdapter = {
 
 /**
  * HTML adapter for parsing and formatting HTML content
+ * Uses Cheerio for robust DOM parsing and traversal
  */
 const htmlAdapter = {
   async parse(input, opts = {}) {
-    // Simple HTML parsing without DOM - extract basic information using regex
-    const data = {
-      title: '',
-      meta: {},
-      links: [],
-      images: [],
-      text: '',
-    };
+    try {
+      const cheerio = await import('cheerio');
+      const $ = cheerio.load(input);
 
-    // Extract title
-    const titleMatch = input.match(/<title[^>]*>([^<]*)<\/title>/i);
-    if (titleMatch) {
-      data.title = titleMatch[1].trim();
-    }
+      // Extract structured data using proper DOM traversal
+      const data = {
+        title: $('title').text() || $('h1').first().text() || '',
+        meta: {},
+        headings: [],
+        links: [],
+        images: [],
+        text: $('body').text().trim() || $.text().trim(),
+      };
 
-    // Extract meta tags
-    const metaMatches = input.matchAll(/<meta\s+([^>]*)>/gi);
-    for (const match of metaMatches) {
-      const attrs = match[1];
-      const nameMatch = attrs.match(/(?:name|property)=["']([^"']+)["']/i);
-      const contentMatch = attrs.match(/content=["']([^"']+)["']/i);
-      if (nameMatch && contentMatch) {
-        data.meta[nameMatch[1]] = contentMatch[1];
+      // Extract meta tags with proper attribute handling
+      $('meta').each((_, el) => {
+        const $el = $(el);
+        const name = $el.attr('name') || $el.attr('property');
+        const content = $el.attr('content');
+        if (name && content) {
+          data.meta[name] = content;
+        }
+      });
+
+      // Extract headings with hierarchy
+      $('h1, h2, h3, h4, h5, h6').each((_, el) => {
+        const $el = $(el);
+        data.headings.push({
+          level: Number.parseInt(el.name[1], 10),
+          text: $el.text().trim(),
+          id: $el.attr('id') || '',
+        });
+      });
+
+      // Extract links with proper text extraction
+      $('a').each((_, el) => {
+        const $el = $(el);
+        const href = $el.attr('href');
+        if (href) {
+          data.links.push({
+            href: href,
+            text: $el.text().trim(),
+            title: $el.attr('title') || '',
+            rel: $el.attr('rel') || '',
+          });
+        }
+      });
+
+      // Extract images with all relevant attributes
+      $('img').each((_, el) => {
+        const $el = $(el);
+        const src = $el.attr('src');
+        if (src) {
+          data.images.push({
+            src: src,
+            alt: $el.attr('alt') || '',
+            title: $el.attr('title') || '',
+            width: $el.attr('width') || '',
+            height: $el.attr('height') || '',
+          });
+        }
+      });
+
+      return {
+        data,
+        metadata: {
+          format: 'html',
+          headingCount: data.headings.length,
+          linkCount: data.links.length,
+          imageCount: data.images.length,
+          metaCount: Object.keys(data.meta).length,
+          ...opts,
+        },
+      };
+    } catch (error) {
+      if (error.message.includes('Cannot find module') || error.message.includes('Cannot resolve module')) {
+        throw new Error('HTML parsing requires the cheerio library (npm install cheerio)');
       }
+      throw new Error(`HTML parsing failed: ${error.message}`);
     }
-
-    // Extract links
-    const linkMatches = input.matchAll(/<a\s+[^>]*href=["']([^"']+)["'][^>]*>([^<]*)<\/a>/gi);
-    for (const match of linkMatches) {
-      data.links.push({
-        href: match[1],
-        text: match[2].trim(),
-      });
-    }
-
-    // Extract images
-    const imgMatches = input.matchAll(
-      /<img\s+[^>]*src=["']([^"']+)["'][^>]*(?:alt=["']([^"']+)["'])?[^>]*>/gi
-    );
-    for (const match of imgMatches) {
-      data.images.push({
-        src: match[1],
-        alt: match[2] || '',
-      });
-    }
-
-    // Extract text content (remove HTML tags)
-    data.text = input
-      .replace(/<[^>]*>/g, ' ')
-      .replace(/\s+/g, ' ')
-      .trim();
-
-    return {
-      data,
-      metadata: {
-        format: 'html',
-        linkCount: data.links.length,
-        imageCount: data.images.length,
-        ...opts,
-      },
-    };
   },
 
   async format(data, opts = {}) {
-    // Simple HTML formatting - in production you'd want a proper templating engine
-    const { title = '', meta = {}, links = [], images = [], text = '' } = data;
+    const {
+      title = '',
+      meta = {},
+      headings = [],
+      links = [],
+      images = [],
+      text = ''
+    } = data;
 
     let html = '<!DOCTYPE html>\n<html>\n<head>\n';
 
@@ -132,16 +158,27 @@ const htmlAdapter = {
 
     html += '</head>\n<body>\n';
 
+    // Add headings
+    for (const heading of headings) {
+      const id = heading.id ? ` id="${escapeHtml(heading.id)}"` : '';
+      html += `  <h${heading.level}${id}>${escapeHtml(heading.text)}</h${heading.level}>\n`;
+    }
+
     if (text) {
       html += `  <p>${escapeHtml(text)}</p>\n`;
     }
 
     for (const link of links) {
-      html += `  <a href="${escapeHtml(link.href)}">${escapeHtml(link.text)}</a><br>\n`;
+      const title = link.title ? ` title="${escapeHtml(link.title)}"` : '';
+      const rel = link.rel ? ` rel="${escapeHtml(link.rel)}"` : '';
+      html += `  <a href="${escapeHtml(link.href)}"${title}${rel}>${escapeHtml(link.text)}</a><br>\n`;
     }
 
     for (const img of images) {
-      html += `  <img src="${escapeHtml(img.src)}" alt="${escapeHtml(img.alt)}"><br>\n`;
+      const title = img.title ? ` title="${escapeHtml(img.title)}"` : '';
+      const width = img.width ? ` width="${escapeHtml(img.width)}"` : '';
+      const height = img.height ? ` height="${escapeHtml(img.height)}"` : '';
+      html += `  <img src="${escapeHtml(img.src)}" alt="${escapeHtml(img.alt)}"${title}${width}${height}><br>\n`;
     }
 
     html += '</body>\n</html>';
@@ -158,122 +195,249 @@ const htmlAdapter = {
 
   supportsStreaming: false,
   isAI: false,
-  version: '1.0.0',
+  version: '2.0.0',
 };
 
 /**
  * Markdown adapter for parsing and formatting Markdown content
+ * Uses marked library for robust parsing and structure extraction
  */
 const mdAdapter = {
   async parse(input, opts = {}) {
-    // Simple markdown parsing - in production you'd want marked or remark
-    const lines = input.split('\n');
-    const data = {
-      title: '',
-      headings: [],
-      paragraphs: [],
-      links: [],
-      codeBlocks: [],
-    };
+    try {
+      const { marked } = await import('marked');
 
-    let currentParagraph = '';
-    let inCodeBlock = false;
-    let currentCodeBlock = '';
+      // Parse markdown into tokens
+      const tokens = marked.lexer(input);
 
-    for (const line of lines) {
-      const trimmed = line.trim();
+      // Extract structured data from tokens
+      const data = {
+        title: '',
+        headings: [],
+        paragraphs: [],
+        links: [],
+        images: [],
+        codeBlocks: [],
+        lists: [],
+        blockquotes: [],
+        tables: [],
+      };
 
-      if (trimmed.startsWith('```')) {
-        if (inCodeBlock) {
-          data.codeBlocks.push(currentCodeBlock);
-          currentCodeBlock = '';
-          inCodeBlock = false;
-        } else {
-          if (currentParagraph) {
-            data.paragraphs.push(currentParagraph);
-            currentParagraph = '';
+      // Helper function to recursively extract links and images from tokens
+      const extractInlineElements = (token) => {
+        if (token.tokens) {
+          for (const subToken of token.tokens) {
+            if (subToken.type === 'link') {
+              data.links.push({
+                text: subToken.text,
+                url: subToken.href,
+                title: subToken.title || ''
+              });
+            } else if (subToken.type === 'image') {
+              data.images.push({
+                text: subToken.text,
+                url: subToken.href,
+                alt: subToken.text || '',
+                title: subToken.title || ''
+              });
+            }
+            extractInlineElements(subToken);
           }
-          inCodeBlock = true;
         }
-        continue;
-      }
+      };
 
-      if (inCodeBlock) {
-        currentCodeBlock += line + '\n';
-        continue;
-      }
+      // Process tokens
+      for (const token of tokens) {
+        extractInlineElements(token);
 
-      if (trimmed.startsWith('#')) {
-        if (currentParagraph) {
-          data.paragraphs.push(currentParagraph);
-          currentParagraph = '';
+        switch (token.type) {
+          case 'heading': {
+            data.headings.push({
+              level: token.depth,
+              text: token.text,
+              raw: token.raw
+            });
+            // Use first h1 as title if not set
+            if (token.depth === 1 && !data.title) {
+              data.title = token.text;
+            }
+            break;
+          }
+
+          case 'paragraph': {
+            data.paragraphs.push({
+              text: token.text,
+              raw: token.raw
+            });
+            break;
+          }
+
+          case 'code': {
+            data.codeBlocks.push({
+              lang: token.lang || '',
+              code: token.text,
+              raw: token.raw
+            });
+            break;
+          }
+
+          case 'list': {
+            data.lists.push({
+              ordered: token.ordered,
+              start: token.start || 1,
+              items: token.items.map(item => ({
+                text: item.text,
+                task: item.task,
+                checked: item.checked,
+                raw: item.raw
+              }))
+            });
+            break;
+          }
+
+          case 'blockquote': {
+            data.blockquotes.push({
+              text: token.text,
+              raw: token.raw
+            });
+            break;
+          }
+
+          case 'table': {
+            data.tables.push({
+              header: token.header.map(cell => ({
+                text: cell.text,
+                align: cell.align || 'left'
+              })),
+              rows: token.rows.map(row =>
+                row.map(cell => ({
+                  text: cell.text,
+                  align: cell.align || 'left'
+                }))
+              ),
+              align: token.align,
+              raw: token.raw
+            });
+            break;
+          }
         }
-        const level = trimmed.match(/^#+/)[0].length;
-        const text = trimmed.replace(/^#+\s*/, '');
-        data.headings.push({ level, text });
-
-        if (level === 1 && !data.title) {
-          data.title = text;
-        }
-        continue;
       }
 
-      if (trimmed.startsWith('[') && trimmed.includes('](')) {
-        const match = trimmed.match(/\[([^\]]+)\]\(([^)]+)\)/);
-        if (match) {
-          data.links.push({ text: match[1], url: match[2] });
-        }
-        continue;
+      return {
+        data,
+        metadata: {
+          format: 'md',
+          headingCount: data.headings.length,
+          paragraphCount: data.paragraphs.length,
+          linkCount: data.links.length,
+          imageCount: data.images.length,
+          codeBlockCount: data.codeBlocks.length,
+          listCount: data.lists.length,
+          blockquoteCount: data.blockquotes.length,
+          tableCount: data.tables.length,
+          ...opts,
+        },
+      };
+    } catch (error) {
+      if (error.message.includes('Cannot find module') || error.message.includes('Cannot resolve module')) {
+        throw new Error('Markdown parsing requires the marked library (npm install marked)');
       }
-
-      if (trimmed) {
-        currentParagraph += (currentParagraph ? ' ' : '') + trimmed;
-      } else if (currentParagraph) {
-        data.paragraphs.push(currentParagraph);
-        currentParagraph = '';
-      }
+      throw new Error(`Markdown parsing failed: ${error.message}`);
     }
-
-    if (currentParagraph) {
-      data.paragraphs.push(currentParagraph);
-    }
-
-    return {
-      data,
-      metadata: {
-        format: 'md',
-        headingCount: data.headings.length,
-        paragraphCount: data.paragraphs.length,
-        linkCount: data.links.length,
-        codeBlockCount: data.codeBlocks.length,
-        ...opts,
-      },
-    };
   },
 
   async format(data, opts = {}) {
-    const { title = '', headings = [], paragraphs = [], links = [], codeBlocks = [] } = data;
+    const {
+      title = '',
+      headings = [],
+      paragraphs = [],
+      links = [],
+      images = [],
+      codeBlocks = [],
+      lists = [],
+      blockquotes = [],
+      tables = []
+    } = data;
 
     let md = '';
 
+    // Add title as h1 if present
     if (title) {
       md += `# ${title}\n\n`;
     }
 
+    // Add headings
     for (const heading of headings) {
       md += `${'#'.repeat(heading.level)} ${heading.text}\n\n`;
     }
 
+    // Add paragraphs
     for (const paragraph of paragraphs) {
-      md += `${paragraph}\n\n`;
+      const text = typeof paragraph === 'string' ? paragraph : paragraph.text;
+      md += `${text}\n\n`;
     }
 
-    for (const link of links) {
-      md += `[${link.text}](${link.url})\n\n`;
+    // Add lists
+    for (const list of lists) {
+      for (let i = 0; i < list.items.length; i++) {
+        const item = list.items[i];
+        const text = typeof item === 'string' ? item : item.text;
+        const prefix = list.ordered ? `${(list.start || 1) + i}. ` : '- ';
+        const checkbox = item.task ? (item.checked ? '[x] ' : '[ ] ') : '';
+        md += `${prefix}${checkbox}${text}\n`;
+      }
+      md += '\n';
     }
 
+    // Add blockquotes
+    for (const quote of blockquotes) {
+      const text = typeof quote === 'string' ? quote : quote.text;
+      md += `> ${text}\n\n`;
+    }
+
+    // Add tables
+    for (const table of tables) {
+      // Header row
+      md += '| ' + table.header.map(cell => {
+        const text = typeof cell === 'string' ? cell : cell.text;
+        return text;
+      }).join(' | ') + ' |\n';
+
+      // Separator row
+      md += '| ' + table.header.map((cell, i) => {
+        const align = (typeof cell === 'string' ? 'left' : cell.align) || table.align?.[i] || 'left';
+        switch (align) {
+          case 'center': { return ':---:'; }
+          case 'right': { return '---:'; }
+          default: { return '---'; }
+        }
+      }).join(' | ') + ' |\n';
+
+      // Data rows
+      for (const row of table.rows) {
+        md += '| ' + row.map(cell => {
+          const text = typeof cell === 'string' ? cell : cell.text;
+          return text;
+        }).join(' | ') + ' |\n';
+      }
+      md += '\n';
+    }
+
+    // Add code blocks
     for (const codeBlock of codeBlocks) {
-      md += '```\n' + codeBlock + '```\n\n';
+      const lang = typeof codeBlock === 'string' ? '' : codeBlock.lang || '';
+      const code = typeof codeBlock === 'string' ? codeBlock : codeBlock.code;
+      md += '```' + lang + '\n' + code + '\n```\n\n';
+    }
+
+    // Add standalone links
+    for (const link of links) {
+      md += `[${link.text}](${link.url}${link.title ? ` "${link.title}"` : ''})\n\n`;
+    }
+
+    // Add standalone images
+    for (const image of images) {
+      md += `![${image.alt || image.text}](${image.url}${image.title ? ` "${image.title}"` : ''})\n\n`;
     }
 
     return {
@@ -288,7 +452,7 @@ const mdAdapter = {
 
   supportsStreaming: true,
   isAI: false,
-  version: '1.0.0',
+  version: '2.0.0',
 };
 
 /**
@@ -307,7 +471,7 @@ const docxTableAdapter = {
         zip = new PizZip(input);
       } else {
         // For file paths, we'd need fs - this is a simplified version
-        throw new Error(
+        throw new TypeError(
           'DOCX parsing from file paths requires fs module - use buffer input instead'
         );
       }
@@ -328,7 +492,7 @@ const docxTableAdapter = {
           row
             .split('|')
             .map(cell => cell.trim())
-            .filter(cell => cell)
+            .filter(Boolean)
         );
       });
 
@@ -459,7 +623,7 @@ const pdfTableAdapter = {
         pdfBytes = input;
       } else {
         // For file paths, we'd need fs - this is a simplified version
-        throw new Error(
+        throw new TypeError(
           'PDF parsing from file paths requires fs module - use buffer input instead'
         );
       }
@@ -483,8 +647,8 @@ const pdfTableAdapter = {
           subject: pdfDoc.getSubject() || '',
           creator: pdfDoc.getCreator() || '',
           producer: pdfDoc.getProducer() || '',
-          creationDate: pdfDoc.getCreationDate() || null,
-          modificationDate: pdfDoc.getModificationDate() || null,
+          creationDate: pdfDoc.getCreationDate() || undefined,
+          modificationDate: pdfDoc.getModificationDate() || undefined,
         },
       };
 
@@ -626,7 +790,7 @@ const pptxSlidesAdapter = {
         pptxBuffer = input;
       } else {
         // For file paths, we'd need fs - this is a simplified version
-        throw new Error(
+        throw new TypeError(
           'PPTX parsing from file paths requires fs module - use buffer input instead'
         );
       }
@@ -772,7 +936,7 @@ const xlsxAdapter = {
         await workbook.xlsx.load(input);
       } else {
         // For file paths, we'd need fs - this is a simplified version
-        throw new Error(
+        throw new TypeError(
           'XLSX parsing from file paths requires fs module - use buffer input instead'
         );
       }
@@ -782,8 +946,8 @@ const xlsxAdapter = {
         metadata: {
           creator: workbook.creator || '',
           lastModifiedBy: workbook.lastModifiedBy || '',
-          created: workbook.created || null,
-          modified: workbook.modified || null,
+          created: workbook.created || undefined,
+          modified: workbook.modified || undefined,
         },
       };
 

@@ -8,8 +8,24 @@ import { ollama } from 'ollama-ai-provider-v2';
 import { createPackManifest, registerPack } from '../core/index.mjs';
 
 /**
- * AI-Assisted DOCX Adapter
+ * AI-Assisted DOCX Adapter (Parse-Only)
+ *
  * Uses 'mammoth' to extract raw text and the Vercel AI SDK to structure it.
+ *
+ * ⚠️ PARSE-ONLY ADAPTER: This adapter only supports parsing (from:docx-ai).
+ * Document creation (to:docx-ai) is not supported because AI output is
+ * non-deterministic and unsuitable for reliable document generation.
+ *
+ * Use Cases:
+ * - Extract structured data from Word documents using AI
+ * - Parse messy or inconsistent document formats
+ * - Convert document content to JSON/structured data
+ *
+ * For document creation, use deterministic adapters:
+ * - "docx" - Standard Word documents
+ * - "docx-table" - Tabular data in Word
+ * - "html" - Rich formatting with Word conversion
+ *
  * @type {Adapter}
  */
 const docxAiAdapter = {
@@ -41,7 +57,13 @@ const docxAiAdapter = {
 
   async format(data, opts = {}) {
     throw new Error(
-      'AI-assisted formatting (to:docx-ai) is not supported. Use a deterministic adapter like "docx-table" instead.'
+      '❌ AI-assisted formatting (to:docx-ai) is not supported.\n\n' +
+      '📝 Reason: AI output is non-deterministic and unsuitable for document creation.\n\n' +
+      '✅ Recommended alternatives:\n' +
+      '  • Use "docx" adapter for tables and structured documents\n' +
+      '  • Use "docx-table" for tabular data\n' +
+      '  • Use "html" → Word conversion for rich formatting\n\n' +
+      '💡 Example: .to("docx", { content: data })'
     );
   },
 
@@ -51,8 +73,24 @@ const docxAiAdapter = {
 };
 
 /**
- * AI-Assisted PPTX Adapter
+ * AI-Assisted PPTX Adapter (Parse-Only)
+ *
  * Uses 'jszip' to extract slide text and the Vercel AI SDK to structure it.
+ *
+ * ⚠️ PARSE-ONLY ADAPTER: This adapter only supports parsing (from:pptx-ai).
+ * Presentation creation (to:pptx-ai) is not supported because AI output is
+ * non-deterministic and unsuitable for reliable slide generation.
+ *
+ * Use Cases:
+ * - Extract structured data from PowerPoint slides using AI
+ * - Parse presentation content into JSON
+ * - Analyze slide content programmatically
+ *
+ * For presentation creation, use deterministic adapters:
+ * - "pptx" - Standard PowerPoint files
+ * - "pptx-slides" - Structured slide creation
+ * - "html" - Rich formatting with PowerPoint conversion
+ *
  * @type {Adapter}
  */
 const pptxAiAdapter = {
@@ -101,7 +139,13 @@ const pptxAiAdapter = {
 
   async format(data, opts = {}) {
     throw new Error(
-      'AI-assisted formatting (to:pptx-ai) is not supported. Use a deterministic adapter like "pptx-slides" instead.'
+      '❌ AI-assisted formatting (to:pptx-ai) is not supported.\n\n' +
+      '📝 Reason: AI output is non-deterministic and unsuitable for presentation creation.\n\n' +
+      '✅ Recommended alternatives:\n' +
+      '  • Use "pptx" adapter for slide creation\n' +
+      '  • Use "pptx-slides" for structured presentations\n' +
+      '  • Use "html" → PowerPoint conversion for rich content\n\n' +
+      '💡 Example: .to("pptx-slides", { slides: data })'
     );
   },
 
@@ -111,8 +155,24 @@ const pptxAiAdapter = {
 };
 
 /**
- * AI-Assisted XLSX Adapter
+ * AI-Assisted XLSX Adapter (Parse-Only)
+ *
  * Uses 'exceljs' to read worksheet data and the Vercel AI SDK to structure it.
+ *
+ * ⚠️ PARSE-ONLY ADAPTER: This adapter only supports parsing (from:xlsx-ai).
+ * Spreadsheet creation (to:xlsx-ai) is not supported because AI output is
+ * non-deterministic and unsuitable for reliable Excel generation.
+ *
+ * Use Cases:
+ * - Extract structured data from messy Excel files using AI
+ * - Normalize inconsistent column headers and data
+ * - Convert spreadsheet content to JSON/structured data
+ *
+ * For spreadsheet creation, use deterministic adapters:
+ * - "xlsx" - Standard Excel files
+ * - "csv" - Simple tabular data
+ * - "json" - Structured data with Excel conversion
+ *
  * @type {Adapter}
  */
 const xlsxAiAdapter = {
@@ -151,7 +211,13 @@ const xlsxAiAdapter = {
 
   async format(data, opts = {}) {
     throw new Error(
-      'AI-assisted formatting (to:xlsx-ai) is not supported. Use a deterministic adapter like "xlsx" instead.'
+      '❌ AI-assisted formatting (to:xlsx-ai) is not supported.\n\n' +
+      '📝 Reason: AI output is non-deterministic and unsuitable for spreadsheet creation.\n\n' +
+      '✅ Recommended alternatives:\n' +
+      '  • Use "xlsx" adapter for standard Excel files\n' +
+      '  • Use "csv" for simple tabular data\n' +
+      '  • Use "json" → Excel conversion for structured data\n\n' +
+      '💡 Example: .to("xlsx", { sheets: [{ name: "Sheet1", data }] })'
     );
   },
 
@@ -163,7 +229,7 @@ const xlsxAiAdapter = {
 // --- Pack Registration ---
 const packManifest = createPackManifest('ztf-pack-ai', ['docx-ai', 'pptx-ai', 'xlsx-ai'], {
   version: '1.0.0',
-  description: 'AI-Assisted format adapters for ZTF',
+  description: 'AI-Assisted parse-only adapters for ZTF (DOCX, PPTX, XLSX). Uses Vercel AI SDK for intelligent document parsing. ⚠️ These adapters only support parsing (from:*-ai), not formatting (to:*-ai).',
   // Peer dependencies are recommended for heavy libraries
   dependencies: ['ai', 'ollama-ai-provider-v2', 'mammoth', 'jszip', 'exceljs'],
 });

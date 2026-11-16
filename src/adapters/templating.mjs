@@ -182,11 +182,9 @@ const frontmatterAdapter = {
       } else if (/^\d+(\.\d+)?$/.test(value)) {
         // Only parse as number if it's purely numeric
         value = Number.parseFloat(value);
-      } else if (value.startsWith('[') && value.endsWith(']')) {
-        // Keep array-like values as strings for frontmatter compatibility
-        // This matches the expected behavior in the tests
-        value = value;
       }
+      // Note: Array-like values (strings starting with '[' and ending with ']')
+      // are kept as strings for frontmatter compatibility
 
       frontmatter[key] = value;
     }

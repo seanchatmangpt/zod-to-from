@@ -143,9 +143,12 @@ const exifAdapter = {
     try {
       const exifr = await import('exifr');
 
-      // Note: exifr is primarily for reading EXIF data
-      // Writing EXIF data is complex and typically requires specialized libraries
-      // For now, we'll provide a structured approach to prepare data for EXIF writing
+      // IMPORTANT: This adapter is READ-ONLY
+      // The exifr library only supports reading EXIF data, not writing
+      // For writing EXIF data to images, consider using:
+      // - piexifjs: https://github.com/hMatoba/piexifjs (browser & Node.js)
+      // - exif-writer: https://github.com/mattburns/exif-writer (Node.js)
+      // - sharp: https://sharp.pixelplumbing.com/ (includes EXIF manipulation)
 
       const exifStructure = {
         // Camera information
@@ -196,7 +199,14 @@ const exifAdapter = {
         metadata: {
           format: 'exif',
           fields: Object.keys(cleanStructure).length,
-          note: 'EXIF data structure prepared for writing (requires specialized EXIF writing library)',
+          readOnly: true,
+          note: 'EXIF adapter is read-only. Data structure prepared for external writing tools.',
+          writingLibraries: {
+            piexifjs: 'https://github.com/hMatoba/piexifjs',
+            'exif-writer': 'https://github.com/mattburns/exif-writer',
+            sharp: 'https://sharp.pixelplumbing.com/',
+          },
+          usage: 'Use the prepared data structure with a specialized EXIF writing library',
           ...opts,
         },
       };
@@ -304,48 +314,48 @@ const id3Adapter = {
       // Normalize the data structure
       const normalizedData = {
         basic: {
-          title: id3Data.title || null,
-          artist: id3Data.artist || null,
-          album: id3Data.album || null,
-          year: id3Data.year || null,
-          genre: id3Data.genre || null,
-          track: id3Data.track || null,
+          title: id3Data.title || undefined,
+          artist: id3Data.artist || undefined,
+          album: id3Data.album || undefined,
+          year: id3Data.year || undefined,
+          genre: id3Data.genre || undefined,
+          track: id3Data.track || undefined,
         },
         extended: {
-          albumArtist: id3Data.albumArtist || id3Data.TPE2 || null,
-          discNumber: id3Data.TPOS || null,
-          recordingTime: id3Data.TDRC || id3Data.TDRL || id3Data.TDTG || null,
-          encoder: id3Data.TENC || null,
-          lyrics: id3Data.TEXT || null,
-          fileType: id3Data.TFLT || null,
-          time: id3Data.TIME || null,
-          contentGroup: id3Data.TIT1 || null,
-          subtitle: id3Data.TIT3 || null,
-          initialKey: id3Data.TKEY || null,
-          language: id3Data.TLAN || null,
-          length: id3Data.TLEN || null,
-          mediaType: id3Data.TMED || null,
-          originalAlbum: id3Data.TOAL || null,
-          originalFilename: id3Data.TOFN || null,
-          originalLyricist: id3Data.TOLY || null,
-          originalArtist: id3Data.TOPE || null,
-          originalReleaseYear: id3Data.TORY || null,
-          fileOwner: id3Data.TOWN || null,
-          conductor: id3Data.TPE3 || null,
-          interpretedBy: id3Data.TPE4 || null,
-          publisher: id3Data.TPUB || null,
-          recordingDates: id3Data.TRDA || null,
-          internetRadioStationName: id3Data.TRSN || null,
-          internetRadioOwner: id3Data.TRSO || null,
-          size: id3Data.TSIZ || null,
-          isrc: id3Data.TSRC || null,
-          softwareHardwareSettings: id3Data.TSSE || null,
+          albumArtist: id3Data.albumArtist || id3Data.TPE2 || undefined,
+          discNumber: id3Data.TPOS || undefined,
+          recordingTime: id3Data.TDRC || id3Data.TDRL || id3Data.TDTG || undefined,
+          encoder: id3Data.TENC || undefined,
+          lyrics: id3Data.TEXT || undefined,
+          fileType: id3Data.TFLT || undefined,
+          time: id3Data.TIME || undefined,
+          contentGroup: id3Data.TIT1 || undefined,
+          subtitle: id3Data.TIT3 || undefined,
+          initialKey: id3Data.TKEY || undefined,
+          language: id3Data.TLAN || undefined,
+          length: id3Data.TLEN || undefined,
+          mediaType: id3Data.TMED || undefined,
+          originalAlbum: id3Data.TOAL || undefined,
+          originalFilename: id3Data.TOFN || undefined,
+          originalLyricist: id3Data.TOLY || undefined,
+          originalArtist: id3Data.TOPE || undefined,
+          originalReleaseYear: id3Data.TORY || undefined,
+          fileOwner: id3Data.TOWN || undefined,
+          conductor: id3Data.TPE3 || undefined,
+          interpretedBy: id3Data.TPE4 || undefined,
+          publisher: id3Data.TPUB || undefined,
+          recordingDates: id3Data.TRDA || undefined,
+          internetRadioStationName: id3Data.TRSN || undefined,
+          internetRadioOwner: id3Data.TRSO || undefined,
+          size: id3Data.TSIZ || undefined,
+          isrc: id3Data.TSRC || undefined,
+          softwareHardwareSettings: id3Data.TSSE || undefined,
         },
-        custom: id3Data.TXXX || null,
-        url: id3Data.WXXX || null,
-        images: id3Data.image || id3Data.APIC || null,
-        lyrics: id3Data.USLT || null,
-        comments: id3Data.COMM || null,
+        custom: id3Data.TXXX || undefined,
+        url: id3Data.WXXX || undefined,
+        images: id3Data.image || id3Data.APIC || undefined,
+        lyrics: id3Data.USLT || undefined,
+        comments: id3Data.COMM || undefined,
       };
 
       return {
@@ -353,7 +363,7 @@ const id3Adapter = {
         metadata: {
           format: 'id3',
           hasId3Data: true,
-          version: id3Data.version || null,
+          version: id3Data.version !== undefined ? id3Data.version : undefined,
           dataFields: Object.keys(id3Data).length,
           ...opts,
         },
@@ -373,56 +383,56 @@ const id3Adapter = {
       // Prepare ID3 tag structure
       const id3Tags = {
         // Basic tags
-        title: data.basic?.title || data.title || null,
-        artist: data.basic?.artist || data.artist || null,
-        album: data.basic?.album || data.album || null,
-        year: data.basic?.year || data.year || null,
-        genre: data.basic?.genre || data.genre || null,
-        track: data.basic?.track || data.track || null,
+        title: data.basic?.title || data.title || undefined,
+        artist: data.basic?.artist || data.artist || undefined,
+        album: data.basic?.album || data.album || undefined,
+        year: data.basic?.year || data.year || undefined,
+        genre: data.basic?.genre || data.genre || undefined,
+        track: data.basic?.track || data.track || undefined,
 
         // Extended tags
-        albumArtist: data.extended?.albumArtist || null,
-        TPE2: data.extended?.albumArtist || null,
-        TPOS: data.extended?.discNumber || null,
-        TDRC: data.extended?.recordingTime || null,
-        TENC: data.extended?.encoder || null,
-        TEXT: data.extended?.lyrics || null,
-        TFLT: data.extended?.fileType || null,
-        TIME: data.extended?.time || null,
-        TIT1: data.extended?.contentGroup || null,
-        TIT3: data.extended?.subtitle || null,
-        TKEY: data.extended?.initialKey || null,
-        TLAN: data.extended?.language || null,
-        TLEN: data.extended?.length || null,
-        TMED: data.extended?.mediaType || null,
-        TOAL: data.extended?.originalAlbum || null,
-        TOFN: data.extended?.originalFilename || null,
-        TOLY: data.extended?.originalLyricist || null,
-        TOPE: data.extended?.originalArtist || null,
-        TORY: data.extended?.originalReleaseYear || null,
-        TOWN: data.extended?.fileOwner || null,
-        TPE3: data.extended?.conductor || null,
-        TPE4: data.extended?.interpretedBy || null,
-        TPUB: data.extended?.publisher || null,
-        TRDA: data.extended?.recordingDates || null,
-        TRSN: data.extended?.internetRadioStationName || null,
-        TRSO: data.extended?.internetRadioOwner || null,
-        TSIZ: data.extended?.size || null,
-        TSRC: data.extended?.isrc || null,
-        TSSE: data.extended?.softwareHardwareSettings || null,
+        albumArtist: data.extended?.albumArtist || undefined,
+        TPE2: data.extended?.albumArtist || undefined,
+        TPOS: data.extended?.discNumber || undefined,
+        TDRC: data.extended?.recordingTime || undefined,
+        TENC: data.extended?.encoder || undefined,
+        TEXT: data.extended?.lyrics || undefined,
+        TFLT: data.extended?.fileType || undefined,
+        TIME: data.extended?.time || undefined,
+        TIT1: data.extended?.contentGroup || undefined,
+        TIT3: data.extended?.subtitle || undefined,
+        TKEY: data.extended?.initialKey || undefined,
+        TLAN: data.extended?.language || undefined,
+        TLEN: data.extended?.length || undefined,
+        TMED: data.extended?.mediaType || undefined,
+        TOAL: data.extended?.originalAlbum || undefined,
+        TOFN: data.extended?.originalFilename || undefined,
+        TOLY: data.extended?.originalLyricist || undefined,
+        TOPE: data.extended?.originalArtist || undefined,
+        TORY: data.extended?.originalReleaseYear || undefined,
+        TOWN: data.extended?.fileOwner || undefined,
+        TPE3: data.extended?.conductor || undefined,
+        TPE4: data.extended?.interpretedBy || undefined,
+        TPUB: data.extended?.publisher || undefined,
+        TRDA: data.extended?.recordingDates || undefined,
+        TRSN: data.extended?.internetRadioStationName || undefined,
+        TRSO: data.extended?.internetRadioOwner || undefined,
+        TSIZ: data.extended?.size || undefined,
+        TSRC: data.extended?.isrc || undefined,
+        TSSE: data.extended?.softwareHardwareSettings || undefined,
 
         // Custom tags
-        TXXX: data.custom || null,
-        WXXX: data.url || null,
-        image: data.images || null,
-        APIC: data.images || null,
-        USLT: data.lyrics || null,
-        COMM: data.comments || null,
+        TXXX: data.custom || undefined,
+        WXXX: data.url || undefined,
+        image: data.images || undefined,
+        APIC: data.images || undefined,
+        USLT: data.lyrics || undefined,
+        COMM: data.comments || undefined,
       };
 
-      // Remove null values
+      // Remove undefined values
       const cleanTags = Object.fromEntries(
-        Object.entries(id3Tags).filter(([, value]) => value !== null)
+        Object.entries(id3Tags).filter(([, value]) => value !== undefined)
       );
 
       // Create ID3 buffer
@@ -532,17 +542,17 @@ const pdfTextAdapter = {
         text: pdfData.text.trim(),
         pages: pages,
         metadata: {
-          title: pdfData.info?.Title || null,
-          author: pdfData.info?.Author || null,
-          subject: pdfData.info?.Subject || null,
-          keywords: pdfData.info?.Keywords || null,
-          creator: pdfData.info?.Creator || null,
-          producer: pdfData.info?.Producer || null,
-          creationDate: pdfData.info?.CreationDate || null,
-          modificationDate: pdfData.info?.ModDate || null,
+          title: pdfData.info?.Title || undefined,
+          author: pdfData.info?.Author || undefined,
+          subject: pdfData.info?.Subject || undefined,
+          keywords: pdfData.info?.Keywords || undefined,
+          creator: pdfData.info?.Creator || undefined,
+          producer: pdfData.info?.Producer || undefined,
+          creationDate: pdfData.info?.CreationDate || undefined,
+          modificationDate: pdfData.info?.ModDate || undefined,
           pageCount: pdfData.numpages || pages.length,
           textLength: pdfData.text.length,
-          wordCount: pdfData.text.split(/\s+/).filter(word => word.length > 0).length,
+          wordCount: pdfData.text.split(/\s+/).filter((word) => word.length > 0).length,
         },
       };
 
@@ -661,7 +671,7 @@ const tarAdapter = {
             gname: header.gname,
             devmajor: header.devmajor,
             devminor: header.devminor,
-            content: null,
+            content: undefined,
           };
 
           // Check file size limit
@@ -787,14 +797,21 @@ const tarAdapter = {
         // Add files to the archive
         if (data.files && Array.isArray(data.files)) {
           for (const file of data.files) {
+            // Ensure mtime is a valid Date object
+            let mtimeValue;
+            if (file.mtime) {
+              const mtimeDate = file.mtime instanceof Date ? file.mtime : new Date(file.mtime);
+              mtimeValue = mtimeDate;
+            } else {
+              mtimeValue = new Date();
+            }
+
             const header = {
               name: file.name,
               type: file.type || 'file',
               size: file.content ? file.content.length : 0,
               mode: file.mode || 0o644,
-              mtime: file.mtime
-                ? Math.floor(new Date(file.mtime).getTime() / 1000)
-                : Math.floor(Date.now() / 1000),
+              mtime: mtimeValue,
               uid: file.uid || 0,
               gid: file.gid || 0,
               uname: file.uname || '',
@@ -874,11 +891,11 @@ const zipAdapter = {
             name: relativePath,
             type: 'directory',
             size: 0,
-            compression: null,
-            crc32: null,
-            content: null,
-            lastModified: zipEntry.date ? zipEntry.date.toISOString() : null,
-            comment: zipEntry.comment || null,
+            compression: undefined,
+            crc32: undefined,
+            content: undefined,
+            lastModified: zipEntry.date ? zipEntry.date.toISOString() : undefined,
+            comment: zipEntry.comment || undefined,
           });
         } else {
           // File entry
@@ -886,11 +903,11 @@ const zipAdapter = {
             name: relativePath,
             type: 'file',
             size: zipEntry._data?.uncompressedSize || 0,
-            compression: zipEntry._data?.compression || null,
-            crc32: zipEntry._data?.crc32 || null,
-            content: null,
-            lastModified: zipEntry.date ? zipEntry.date.toISOString() : null,
-            comment: zipEntry.comment || null,
+            compression: zipEntry._data?.compression || undefined,
+            crc32: zipEntry._data?.crc32 || undefined,
+            content: undefined,
+            lastModified: zipEntry.date ? zipEntry.date.toISOString() : undefined,
+            comment: zipEntry.comment || undefined,
           };
 
           // Check file size limit
@@ -926,7 +943,7 @@ const zipAdapter = {
           totalSize: totalSize,
           compression: 'deflate', // ZIP typically uses deflate compression
           format: 'zip',
-          comment: zipData.comment || null,
+          comment: zipData.comment || undefined,
         },
       };
 
@@ -970,7 +987,7 @@ const zipAdapter = {
                 level: compressionLevel,
               },
               date: file.lastModified ? new Date(file.lastModified) : new Date(),
-              comment: file.comment || null,
+              comment: file.comment || undefined,
             };
 
             if (Buffer.isBuffer(file.content)) {

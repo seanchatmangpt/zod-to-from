@@ -138,9 +138,9 @@ const ndjsonAdapter = {
         }
       });
 
-    // Return data in the expected format
+    // Return data in the expected format - wrap records in items property
     return {
-      data: records,
+      data: { items: records },
       metadata: {
         format: 'ndjson',
         recordCount: records.length,
@@ -150,8 +150,9 @@ const ndjsonAdapter = {
   },
 
   async format(data, opts = {}) {
-    // Use data directly if it's an array, otherwise wrap in array
-    const records = Array.isArray(data) ? data : [data];
+    // Extract items from data object if present, otherwise use data directly
+    const items = data?.items || data;
+    const records = Array.isArray(items) ? items : [items];
     const ndjson = records.map(record => JSON.stringify(record)).join('\n');
 
     return {
@@ -208,9 +209,95 @@ const sqliteAdapter = {
   },
 
   async format(data, opts = {}) {
-    // Note: SQLite formatting would require creating a database file
-    // This is a complex operation that would need schema definition
-    throw new Error('SQLite formatting not yet implemented - requires schema definition');
+    const sqlite3 = await import('sqlite3');
+    const { Database } = sqlite3.default;
+    const path = await import('node:path');
+    const fs = await import('node:fs');
+    const os = await import('node:os');
+
+    // Create a temporary database file
+    const dbPath = opts.dbPath || path.join(os.tmpdir(), `ztf-${Date.now()}.db`);
+
+    return new Promise((resolve, reject) => {
+      const db = new Database(dbPath);
+      const records = Array.isArray(data) ? data : [data];
+
+      if (records.length === 0) {
+        db.close();
+        reject(new Error('Cannot format SQLite: no data provided'));
+        return;
+      }
+
+      // Infer table name and schema from options or data
+      const tableName = opts.tableName || 'data';
+      const columns = Object.keys(records[0]);
+
+      // Create table
+      const createTableSQL = `CREATE TABLE IF NOT EXISTS ${tableName} (${columns.map(col => `${col} TEXT`).join(', ')})`;
+
+      db.run(createTableSQL, err => {
+        if (err) {
+          db.close();
+          reject(new Error(`Failed to create table: ${err.message}`));
+          return;
+        }
+
+        // Prepare insert statement
+        const placeholders = columns.map(() => '?').join(', ');
+        const insertSQL = `INSERT INTO ${tableName} (${columns.join(', ')}) VALUES (${placeholders})`;
+
+        const stmt = db.prepare(insertSQL);
+
+        // Insert all records
+        for (const record of records) {
+          const values = columns.map(col => record[col]);
+          stmt.run(values);
+        }
+
+        stmt.finalize(finalizeErr => {
+          if (finalizeErr) {
+            db.close();
+            reject(new Error(`Failed to insert data: ${finalizeErr.message}`));
+            return;
+          }
+
+          db.close(closeErr => {
+            if (closeErr) {
+              reject(new Error(`Failed to close database: ${closeErr.message}`));
+              return;
+            }
+
+            // Read the database file
+            fs.readFile(dbPath, (readErr, buffer) => {
+              if (readErr) {
+                reject(new Error(`Failed to read database file: ${readErr.message}`));
+                return;
+              }
+
+              // Clean up temp file unless specified to keep
+              if (!opts.keepTempFile) {
+                fs.unlink(dbPath, () => {
+                  // Ignore cleanup errors
+                });
+              }
+
+              resolve({
+                data: buffer.toString('base64'),
+                metadata: {
+                  format: 'sqlite',
+                  dbPath: opts.keepTempFile ? dbPath : undefined,
+                  tableName,
+                  recordCount: records.length,
+                  columnCount: columns.length,
+                  encoding: 'base64',
+                  ...opts,
+                },
+              });
+            });
+          });
+        });
+      });
+    });
   },
 
   supportsStreaming: false,

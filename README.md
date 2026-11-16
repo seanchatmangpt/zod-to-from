@@ -194,29 +194,253 @@ console.log(yamlOutput);
 - **Nunjucks** - Template engine
 - **Frontmatter** - Document metadata
 
-## 🧠 AI-Powered Adapters
+## 💡 Real-World Use Cases
 
-ZTF includes AI-powered adapters that use Ollama for intelligent document
-parsing:
+### 1. API Data Migration
+
+Migrate data between different API formats with schema validation:
 
 ```javascript
-import { parseFrom } from 'zod-to-from';
+import { fromJson, toYaml, fromCsv, toJson } from 'zod-to-from';
 import { z } from 'zod';
 
-const DocumentSchema = z.object({
-  title: z.string(),
-  summary: z.string(),
-  keyPoints: z.array(z.string()),
+const ProductSchema = z.object({
+  id: z.string(),
+  name: z.string(),
+  price: z.number(),
+  inStock: z.boolean(),
+  tags: z.array(z.string()),
 });
 
-// AI-assisted DOCX parsing
-const docxBuffer = fs.readFileSync('document.docx');
-const parsed = await parseFrom(DocumentSchema, 'docx-ai', docxBuffer, {
+// Convert REST API JSON response to YAML config
+const apiResponse = await fetch('/api/products').then((r) => r.text());
+const products = await fromJson(ProductSchema, apiResponse);
+const yamlConfig = await toYaml(ProductSchema, products);
+fs.writeFileSync('config/products.yaml', yamlConfig);
+
+// Import CSV from legacy system to modern API
+const legacyCsv = fs.readFileSync('legacy/products.csv', 'utf8');
+const importData = await fromCsv(ProductSchema, legacyCsv);
+const apiPayload = await toJson(ProductSchema, importData);
+await fetch('/api/bulk-import', {
+  method: 'POST',
+  body: apiPayload,
+});
+```
+
+### 2. Configuration Management
+
+Convert between different config formats for multi-environment deployments:
+
+```javascript
+import { fromYaml, toToml, fromEnv, toDockerCompose } from 'zod-to-from';
+import { z } from 'zod';
+
+const ConfigSchema = z.object({
+  database: z.object({
+    host: z.string(),
+    port: z.number(),
+    name: z.string(),
+  }),
+  redis: z.object({
+    url: z.string(),
+  }),
+  api: z.object({
+    port: z.number(),
+    cors: z.boolean(),
+  }),
+});
+
+// Convert YAML config to TOML for different tooling
+const yamlConfig = fs.readFileSync('config.yaml', 'utf8');
+const config = await fromYaml(ConfigSchema, yamlConfig);
+const tomlConfig = await toToml(ConfigSchema, config);
+fs.writeFileSync('config.toml', tomlConfig);
+
+// Generate Docker Compose from environment variables
+const envVars = await fromEnv(ConfigSchema, process.env);
+const dockerCompose = await toDockerCompose(ConfigSchema, envVars);
+fs.writeFileSync('docker-compose.yml', dockerCompose);
+```
+
+### 3. Geospatial Data Processing
+
+Work with GPS tracks, maps, and location data:
+
+```javascript
+import { fromGpx, toKml, fromGeoJson, toTopoJson } from 'zod-to-from';
+import { z } from 'zod';
+
+const RouteSchema = z.object({
+  name: z.string(),
+  points: z.array(
+    z.object({
+      lat: z.number(),
+      lon: z.number(),
+      elevation: z.number().optional(),
+      timestamp: z.string().optional(),
+    })
+  ),
+});
+
+// Convert GPS track to Google Earth format
+const gpxData = fs.readFileSync('morning-run.gpx', 'utf8');
+const route = await fromGpx(RouteSchema, gpxData);
+const kmlData = await toKml(RouteSchema, route);
+fs.writeFileSync('morning-run.kml', kmlData);
+
+// Optimize map data with TopoJSON
+const geoJsonMap = fs.readFileSync('city-map.geojson', 'utf8');
+const mapData = await fromGeoJson(RouteSchema, geoJsonMap);
+const optimizedMap = await toTopoJson(RouteSchema, mapData);
+// TopoJSON is typically 80% smaller than GeoJSON
+fs.writeFileSync('city-map.topojson', optimizedMap);
+```
+
+### 4. Document Processing & Extraction
+
+Extract structured data from office documents:
+
+```javascript
+import { fromDocx, fromPdf, fromXlsx, toJson } from 'zod-to-from';
+import { z } from 'zod';
+
+const InvoiceSchema = z.object({
+  invoiceNumber: z.string(),
+  date: z.string(),
+  customer: z.string(),
+  items: z.array(
+    z.object({
+      description: z.string(),
+      quantity: z.number(),
+      price: z.number(),
+    })
+  ),
+  total: z.number(),
+});
+
+// Extract invoice data from PDF with AI assistance
+const pdfBuffer = fs.readFileSync('invoice-2024-01.pdf');
+const invoice = await fromPdf(InvoiceSchema, pdfBuffer, {
   adapter: {
     model: 'qwen3-coder',
-    prompt: 'Extract the main points from this document',
+    prompt: 'Extract invoice details including items and total',
   },
 });
+
+// Process Excel reports to structured data
+const xlsxBuffer = fs.readFileSync('sales-report.xlsx');
+const salesData = await fromXlsx(InvoiceSchema, xlsxBuffer);
+const jsonReport = await toJson(InvoiceSchema, salesData);
+await storeInDatabase(JSON.parse(jsonReport));
+```
+
+### 5. DevOps & Infrastructure Automation
+
+Convert between IaC and container formats:
+
+```javascript
+import {
+  fromTerraform,
+  toKubernetes,
+  fromDockerfile,
+  toDockerCompose,
+} from 'zod-to-from';
+import { z } from 'zod';
+
+const ServiceSchema = z.object({
+  name: z.string(),
+  image: z.string(),
+  ports: z.array(z.number()),
+  env: z.record(z.string()),
+  resources: z.object({
+    cpu: z.string(),
+    memory: z.string(),
+  }),
+});
+
+// Convert Terraform config to Kubernetes manifest
+const tfConfig = fs.readFileSync('infrastructure.tf', 'utf8');
+const services = await fromTerraform(ServiceSchema, tfConfig);
+const k8sManifest = await toKubernetes(ServiceSchema, services);
+fs.writeFileSync('deployment.yaml', k8sManifest);
+
+// Generate Docker Compose from Dockerfile
+const dockerfile = fs.readFileSync('Dockerfile', 'utf8');
+const containerConfig = await fromDockerfile(ServiceSchema, dockerfile);
+const dockerCompose = await toDockerCompose(ServiceSchema, containerConfig);
+fs.writeFileSync('docker-compose.yml', dockerCompose);
+```
+
+### 6. Communication & Calendar Integration
+
+Work with emails, calendar events, and contacts:
+
+```javascript
+import { fromIcs, toJson, fromVcard, toEml } from 'zod-to-from';
+import { z } from 'zod';
+
+const EventSchema = z.object({
+  title: z.string(),
+  start: z.string(),
+  end: z.string(),
+  location: z.string().optional(),
+  attendees: z.array(z.string()),
+});
+
+// Parse calendar invites
+const icsData = fs.readFileSync('meeting.ics', 'utf8');
+const event = await fromIcs(EventSchema, icsData);
+const jsonEvent = await toJson(EventSchema, event);
+
+// Send meeting invite via email
+await sendEmail({
+  to: event.attendees,
+  subject: event.title,
+  body: `Meeting scheduled for ${event.start}`,
+  attachment: icsData,
+});
+
+// Import contacts from vCard
+const vcardData = fs.readFileSync('contacts.vcf', 'utf8');
+const ContactSchema = z.object({
+  name: z.string(),
+  email: z.string().email(),
+  phone: z.string(),
+});
+const contacts = await fromVcard(ContactSchema, vcardData);
+await importToDatabase(contacts);
+```
+
+### 7. Data Analysis & Reporting
+
+Process large datasets with streaming support:
+
+```javascript
+import { fromCsv, toNdjson, fromXlsx, toParquet } from 'zod-to-from';
+import { z } from 'zod';
+
+const SalesSchema = z.object({
+  date: z.string(),
+  product: z.string(),
+  quantity: z.number(),
+  revenue: z.number(),
+  region: z.string(),
+});
+
+// Stream large CSV files efficiently
+const largeCsv = fs.createReadStream('sales-2024.csv');
+const salesData = await fromCsv(SalesSchema, largeCsv, {
+  streaming: true,
+});
+
+// Convert to NDJSON for log processing
+const ndjsonOutput = await toNdjson(SalesSchema, salesData);
+fs.writeFileSync('sales-2024.ndjson', ndjsonOutput);
+
+// Export to Parquet for data warehousing
+const parquetOutput = await toParquet(SalesSchema, salesData);
+fs.writeFileSync('sales-2024.parquet', parquetOutput);
 ```
 
 ## 🔄 Streaming Support
@@ -224,19 +448,28 @@ const parsed = await parseFrom(DocumentSchema, 'docx-ai', docxBuffer, {
 Handle large datasets efficiently with streaming:
 
 ```javascript
-import { parseFrom } from 'zod-to-from';
+import { fromCsv, toJson } from 'zod-to-from';
 
-const result = await parseFrom(Schema, 'csv', largeCsvData, {
+// Process large files without loading everything into memory
+const result = await fromCsv(Schema, largeCsvData, {
   streaming: true,
+  chunkSize: 1000, // Process 1000 rows at a time
 });
+
+// Transform and stream output
+for await (const chunk of result.stream) {
+  await processChunk(chunk);
+}
 ```
 
 ## 📊 Provenance Tracking
 
-Track the history of your data transformations:
+Track the history of your data transformations for audit trails:
 
 ```javascript
-const result = await parseFrom(Schema, 'json', data, {
+import { fromJson, toYaml } from 'zod-to-from';
+
+const result = await fromJson(Schema, data, {
   includeProvenance: true,
 });
 
@@ -244,9 +477,66 @@ console.log(result.provenance);
 // {
 //   timestamp: "2024-01-01T12:00:00.000Z",
 //   adapter: "json",
-//   version: "0.1.0",
-//   schemaHash: "abc123..."
+//   version: "1.0.1",
+//   schemaHash: "abc123...",
+//   transformations: [
+//     { from: "json", to: "yaml", timestamp: "..." }
+//   ]
 // }
+
+// Chain transformations with full audit trail
+const yamlOutput = await toYaml(Schema, result.data, {
+  includeProvenance: true,
+  parentProvenance: result.provenance,
+});
+```
+
+## 🧠 AI-Powered Document Understanding
+
+Use AI to extract structured data from unstructured documents:
+
+```javascript
+import { fromDocx, fromPdf } from 'zod-to-from';
+import { z } from 'zod';
+
+const ResumeSchema = z.object({
+  name: z.string(),
+  email: z.string().email(),
+  skills: z.array(z.string()),
+  experience: z.array(
+    z.object({
+      company: z.string(),
+      role: z.string(),
+      duration: z.string(),
+      responsibilities: z.array(z.string()),
+    })
+  ),
+});
+
+// Extract structured resume data from DOCX
+const docxBuffer = fs.readFileSync('resume.docx');
+const resume = await fromDocx(ResumeSchema, docxBuffer, {
+  adapter: {
+    model: 'qwen3-coder',
+    prompt: 'Extract candidate information including skills and work history',
+  },
+});
+
+// Extract contract terms from PDF
+const ContractSchema = z.object({
+  parties: z.array(z.string()),
+  terms: z.array(z.string()),
+  effectiveDate: z.string(),
+  duration: z.string(),
+});
+
+const pdfBuffer = fs.readFileSync('contract.pdf');
+const contract = await fromPdf(ContractSchema, pdfBuffer, {
+  adapter: {
+    model: 'llama3',
+    prompt: 'Identify all parties, key terms, dates, and obligations',
+  },
+});
 ```
 
 ## 🛠️ Advanced Usage
@@ -274,18 +564,227 @@ registerAdapter('custom', {
 ### Error Handling
 
 ```javascript
-import { parseFrom } from 'zod-to-from';
+import { fromJson } from 'zod-to-from';
 import { z } from 'zod';
 
 try {
-  const result = await parseFrom(Schema, 'json', invalidData);
+  const result = await fromJson(Schema, invalidData);
 } catch (error) {
   if (error.name === 'ZodError') {
-    console.log('Schema validation failed:', error.issues);
+    // Schema validation failed - detailed error messages
+    console.log('Validation errors:', error.issues);
+    for (const issue of error.issues) {
+      console.log(`  - ${issue.path.join('.')}: ${issue.message}`);
+    }
+  } else if (error.code === 'PARSE_ERROR') {
+    // Format parsing failed
+    console.log('Invalid format:', error.message);
   } else {
-    console.log('Parsing failed:', error.message);
+    // Other errors (network, file system, etc.)
+    console.log('Error:', error.message);
   }
 }
+```
+
+### Best Practices
+
+#### 1. Schema Design
+
+```javascript
+import { z } from 'zod';
+
+// ✅ Good: Specific, descriptive schemas
+const UserSchema = z.object({
+  id: z.string().uuid(),
+  email: z.string().email(),
+  age: z.number().int().positive().max(150),
+  role: z.enum(['admin', 'user', 'guest']),
+  createdAt: z.string().datetime(),
+});
+
+// ❌ Bad: Too loose, no validation
+const UserSchema = z.object({
+  id: z.string(),
+  email: z.string(),
+  age: z.number(),
+  role: z.string(),
+  createdAt: z.string(),
+});
+```
+
+#### 2. Type Safety
+
+```javascript
+import { fromJson, toYaml } from 'zod-to-from';
+import { z } from 'zod';
+
+const ConfigSchema = z.object({
+  apiKey: z.string(),
+  timeout: z.number(),
+});
+
+// ✅ Type-safe: TypeScript infers the correct type
+const config = await fromJson(ConfigSchema, jsonData);
+// config is typed as { apiKey: string; timeout: number }
+
+const yamlConfig = await toYaml(ConfigSchema, config);
+// TypeScript ensures config matches the schema
+```
+
+#### 3. Performance Optimization
+
+```javascript
+// ✅ Use streaming for large files
+const result = await fromCsv(Schema, largeFile, {
+  streaming: true,
+  chunkSize: 1000,
+});
+
+// ✅ Lazy load adapters (automatic)
+import { fromJson } from 'zod-to-from'; // Only JSON adapter loaded
+
+// ❌ Avoid loading everything into memory
+const hugeFile = fs.readFileSync('10gb-file.csv'); // Bad!
+```
+
+#### 4. Security Considerations
+
+```javascript
+import { fromJson } from 'zod-to-from';
+import { z } from 'zod';
+
+// ✅ Always validate untrusted input
+const UntrustedSchema = z.object({
+  content: z.string().max(10_000), // Limit size
+  url: z.string().url(), // Validate format
+  email: z.string().email(),
+});
+
+const userInput = await fromJson(UntrustedSchema, untrustedData);
+// Schema ensures data is safe
+
+// ❌ Never trust external data without validation
+const unsafe = JSON.parse(untrustedData); // Dangerous!
+```
+
+## 🔧 Troubleshooting
+
+### Common Issues
+
+#### Issue: "Schema validation failed"
+
+```javascript
+// Problem: Data doesn't match schema
+const UserSchema = z.object({
+  age: z.number(), // Expects number
+});
+
+const data = '{"age": "25"}'; // String instead of number
+
+// Solution: Use transform or preprocess
+const FlexibleUserSchema = z.object({
+  age: z.string().transform(Number), // Convert string to number
+});
+
+const user = await fromJson(FlexibleUserSchema, data);
+```
+
+#### Issue: "Adapter not found"
+
+```javascript
+// Problem: Adapter name typo or not installed
+await fromJson(Schema, data); // ✅ Correct
+await fromJson(Schema, data, { adapter: 'jsn' }); // ❌ Typo
+
+// Solution: Check available adapters
+import { getAvailableAdapters } from 'zod-to-from';
+console.log(getAvailableAdapters()); // List all adapters
+```
+
+#### Issue: "Out of memory" with large files
+
+```javascript
+// Problem: Loading entire file into memory
+const data = fs.readFileSync('huge.csv'); // ❌ Bad
+
+// Solution: Use streaming
+const stream = fs.createReadStream('huge.csv');
+const result = await fromCsv(Schema, stream, {
+  streaming: true,
+  chunkSize: 1000,
+});
+```
+
+#### Issue: "AI adapter timeout"
+
+```javascript
+// Problem: AI model taking too long
+const result = await fromPdf(Schema, pdfBuffer, {
+  adapter: {
+    model: 'llama3',
+    timeout: 5000, // Default might be too short
+  },
+});
+
+// Solution: Increase timeout or use faster model
+const result = await fromPdf(Schema, pdfBuffer, {
+  adapter: {
+    model: 'qwen3-coder', // Faster model
+    timeout: 30_000, // 30 seconds
+  },
+});
+```
+
+#### Issue: "Cannot convert between formats"
+
+```javascript
+// Problem: Direct conversion not supported
+await convert(Schema, data, 'csv', 'pdf'); // ❌ Not supported
+
+// Solution: Use intermediate format (JSON)
+const jsonData = await fromCsv(Schema, csvData);
+const pdfData = await toPdf(Schema, jsonData);
+```
+
+### Debug Mode
+
+Enable detailed logging for troubleshooting:
+
+```javascript
+import { fromJson } from 'zod-to-from';
+
+const result = await fromJson(Schema, data, {
+  debug: true, // Enable debug mode
+});
+
+// Output shows:
+// - Adapter selection
+// - Validation steps
+// - Transformation pipeline
+// - Performance metrics
+```
+
+### Validation Tips
+
+```javascript
+// Tip 1: Use .passthrough() for unknown fields
+const FlexibleSchema = z
+  .object({
+    name: z.string(),
+  })
+  .passthrough(); // Allows extra fields
+
+// Tip 2: Provide defaults for optional fields
+const DefaultSchema = z.object({
+  name: z.string(),
+  age: z.number().default(0),
+  role: z.string().default('user'),
+});
+
+// Tip 3: Use .catch() for fallback values
+const SafeSchema = z.object({
+  count: z.number().catch(0), // Use 0 if validation fails
+});
 ```
 
 ## 🧪 Testing
